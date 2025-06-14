@@ -1,3 +1,5 @@
+import type { BinaryOptionsActive } from "@quadcode-tech/client-sdk-js";
+
 export interface IndicatorWeights {
   ema: number;
   rsi: number;
@@ -26,7 +28,7 @@ export class TradingConfig {
 
   constructor(
     public readonly buyAmount: number,
-    public readonly instrumentId: number
+    public readonly instrument: BinaryOptionsActive
   ) {
     // Load all configurations from environment variables
     this.priceHistoryLength = parseFloat(
@@ -67,5 +69,15 @@ export class TradingConfig {
     if (Math.abs(sum - 1.0) > 0.0001) {
       throw new Error(`Indicator weights must sum to 1.0, got ${sum}`);
     }
+  }
+
+  public toString(): string {
+    return JSON.stringify({
+      ...this,
+      instrument: {
+        id: this.instrument.id,
+        ticker: this.instrument.ticker,
+      },
+    });
   }
 }

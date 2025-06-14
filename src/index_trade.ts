@@ -39,7 +39,7 @@ async function start() {
     );
 
     // Start trading service in a separate process
-    const tradingProcess = Bun.spawn(["bun", "src/workers/trading_worker.ts"], {
+    const tradingProcess = Bun.spawn(["bun", "src/workers/TradingWorker.ts"], {
       env: {
         ...process.env,
         INSTRUMENT_ID: instrumentId,

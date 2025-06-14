@@ -1,41 +1,51 @@
 import { ClientSdk, Balance } from "@quadcode-tech/client-sdk-js";
 import { TradingConfig } from "../models/TradingConfig";
 import { OrderManager } from "./OrderManager";
-import { PositionMonitor } from "./PositionMonitor";
 import { SignalGenerator } from "./SignalGenerator";
+import { TradingState } from "../models/TradingState";
 
 export class TradingService {
   private readonly orderManager: OrderManager;
-  private readonly positionMonitor: PositionMonitor;
   private readonly signalGenerator: SignalGenerator;
 
   constructor(
     private readonly clientSdk: ClientSdk,
-    private readonly balance: Balance,
-    private readonly config: TradingConfig
+    balance: Balance,
+    private readonly config: TradingConfig,
+    private readonly tradingState: TradingState
   ) {
-    this.orderManager = new OrderManager(clientSdk, balance, config);
-    this.positionMonitor = new PositionMonitor(clientSdk, config);
-    this.signalGenerator = new SignalGenerator(config);
+    this.orderManager = new OrderManager(
+      clientSdk,
+      balance,
+      config,
+      this.tradingState
+    );
+    this.signalGenerator = new SignalGenerator(config, this.tradingState);
   }
 
   async start(): Promise<void> {
     console.log("🟢 เชื่อมต่อสำเร็จ!");
-    console.log(`📊 เริ่มเทรด INSTRUMENT_ID: ${this.config.instrumentId}`);
-    console.log(`💰 BUY_AMOUNT: ${this.config.buyAmount}`);
+    console.log(
+      `📊 เริ่มเทรด หมายเลขสินทรัพย์(Instrument ID - ${this.config.instrument.id}): ${this.config.instrument.ticker}`
+    );
+    console.log(`💰 จำนวนเงินที่จะซื้อ: ${this.config.buyAmount}`);
     console.log(`🔄 จำนวนรอบการเทรดสูงสุด: ${this.config.maxTradeCycles}`);
 
     const quotes = await this.clientSdk.quotes();
     const currentQuote = await quotes.getCurrentQuoteForActive(
-      this.config.instrumentId
+      this.config.instrument.id
     );
+    console.log("\n=========================================================");
+    console.log("🔄 เริ่มติดตามราคา");
 
-    currentQuote.subscribeOnUpdate(async (updatedCurrentQuote) => {
-      try {
-        await this.handleQuoteUpdate(updatedCurrentQuote);
-      } catch (error) {
-        console.error("❌ เกิดข้อผิดพลาดในการประมวลผลข้อมูล:", error);
-      }
+    return new Promise((_resolve, reject) => {
+      currentQuote.subscribeOnUpdate(async (updatedCurrentQuote) => {
+        try {
+          await this.handleQuoteUpdate(updatedCurrentQuote);
+        } catch (error) {
+          reject(error);
+        }
+      });
     });
   }
 
