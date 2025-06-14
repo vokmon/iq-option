@@ -5,6 +5,7 @@ import {
 } from "@quadcode-tech/client-sdk-js";
 import { TradingConfig } from "../models/TradingConfig";
 import { PositionMonitor } from "./PositionMonitor";
+import { MaxCyclesReachedError } from "../errors/MaxCyclesReachedError";
 
 export class OrderManager {
   private lastOrderExpiry: Date | null = null;
@@ -81,11 +82,7 @@ export class OrderManager {
 
           if (this.completedCycles >= this.config.maxTradeCycles) {
             console.log("\n--------------------------------");
-            console.log(
-              `🛑 ถึงจำนวนรอบการเทรดสูงสุดแล้ว (${this.config.maxTradeCycles} รอบ)`
-            );
-            console.log("--------------------------------");
-            process.exit(0);
+            throw new MaxCyclesReachedError(this.config.maxTradeCycles);
           }
         },
         this.lastOrderExpiry

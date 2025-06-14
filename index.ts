@@ -1,11 +1,6 @@
 import {
   ClientSdk,
   BalanceType,
-  BinaryOptionsDirection,
-  BlitzOptionsDirection,
-  DigitalOptionsDirection,
-  SsidAuthMethod,
-  TurboOptionsDirection,
   LoginPasswordAuthMethod,
   InstrumentType,
 } from "@quadcode-tech/client-sdk-js";

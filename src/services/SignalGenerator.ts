@@ -12,16 +12,14 @@ export class SignalGenerator {
   async processPrice(price: number): Promise<BinaryOptionsDirection | null> {
     this.technicalAnalysis.addPrice(price);
 
-    if (
-      this.technicalAnalysis.getHistoryLength() <
-      this.config.minPriceHistoryLength
-    ) {
+    const currentLength = this.technicalAnalysis.getHistoryLength();
+    if (currentLength <= this.config.minPriceHistoryLength) {
       console.log(
-        `⏳ กำลังรวบรวมข้อมูล: ${this.technicalAnalysis.getHistoryLength()}/${
-          this.config.minPriceHistoryLength
-        } จุด`
+        `⏳ กำลังรวบรวมข้อมูล: ${currentLength}/${this.config.minPriceHistoryLength} จุด`
       );
-      return null;
+      if (currentLength < this.config.minPriceHistoryLength) {
+        return null;
+      }
     }
 
     const { direction, confidence } = this.technicalAnalysis.predictDirection();

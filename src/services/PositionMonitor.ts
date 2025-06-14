@@ -32,7 +32,7 @@ export class PositionMonitor {
           );
           console.log(`💰 Expected Profit: ${position.expectedProfit}`);
           console.log(
-            `💰 กำไรขาดทุนขั้นต่ำ: ${this.config.minProfitThreshold * 100}%`
+            `💰 ขายทันทีเมื่อกำไร: ${this.config.minProfitThreshold * 100}%`
           );
           console.log(`💰 Direction: ${position.direction}`);
           console.log(`⏱️ สถานะ: ${position.status}`);
