@@ -1,0 +1,21 @@
+{
+  "name": "iq-option",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "start": "bun index.ts",
+    "start:trade": "bun --env-file=./config/env src/index_trade.ts",
+    "start:list": "bun --env-file=./config/env src/index_list.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@quadcode-tech/client-sdk-js": "^1.3.7"
+  }
+}
