@@ -24,19 +24,19 @@ export async function initializeClient(
 
 export async function getBalance(
   clientSdk: ClientSdk,
-  isDemo: boolean
+  isReal: boolean
 ): Promise<Balance> {
   const balances = await clientSdk.balances();
   const balance = balances
     .getBalances()
     .find((balance) =>
-      isDemo
-        ? balance.type === BalanceType.Demo
-        : balance.type === BalanceType.Real
+      isReal
+        ? balance.type === BalanceType.Real
+        : balance.type === BalanceType.Demo
     );
 
   if (!balance) {
-    throw new Error(`ไม่พบ ${isDemo ? "demo" : "real"} balance`);
+    throw new Error(`ไม่พบ ${isReal ? "real" : "demo"} balance`);
   }
 
   return balance;
