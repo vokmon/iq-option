@@ -38,7 +38,15 @@ export class BollingerBandsIndicator implements Indicator {
       calculation: { value: bandwidth },
       signal,
       confidence,
-      string: this.toString(currentClose, upper, middle, lower, bandwidth),
+      string: this.toString(
+        currentClose,
+        upper,
+        middle,
+        lower,
+        bandwidth,
+        signal,
+        confidence
+      ),
     };
   }
 
@@ -142,25 +150,32 @@ export class BollingerBandsIndicator implements Indicator {
     upper: number,
     middle: number,
     lower: number,
-    bandwidth: number
+    bandwidth: number,
+    signal: "up" | "down" | "neutral",
+    confidence: number
   ): string {
-    const signal = this.getSignal(close, upper, middle, lower, bandwidth);
+    const shouldBuy = signal === "up";
+    const buyEmoji = shouldBuy ? "✅" : "🚫";
     const signalEmoji =
-      signal === "up" ? "🔵" : signal === "down" ? "🔴" : "⚪";
+      signal === "up" ? "⬆️" : signal === "down" ? "⬇️" : "↔️";
     const signalText =
-      signal === "up" ? "Bullish" : signal === "down" ? "Bearish" : "Neutral";
-    const actionText =
       signal === "up"
-        ? "Potential Buy"
+        ? "Call - Lower Band Touch"
         : signal === "down"
-        ? "Potential Sell"
-        : "No Clear Signal";
+        ? "Put - Upper Band Touch"
+        : "Neutral";
 
-    return `BB: ${signalEmoji} ${signalText} (${close.toFixed(
+    return `BB | Buy: ${buyEmoji} ${
+      shouldBuy ? "Yes" : "No"
+    } | Action: ${signalEmoji} (${signalText}) | Confident: ${(
+      confidence * 100
+    ).toFixed(1)} | Weight: ${
+      this.analysisConfig.bollinger.WEIGHT
+    } | Close: ${close.toFixed(2)} | Upper: ${upper.toFixed(
       2
-    )} | ${upper.toFixed(2)}, ${middle.toFixed(2)}, ${lower.toFixed(
+    )} | Middle: ${middle.toFixed(2)} | Lower: ${lower.toFixed(
       2
-    )}) | ${actionText} | Weight: ${this.analysisConfig.bollinger.WEIGHT}`;
+    )} | Bandwidth: ${bandwidth.toFixed(2)}`;
   }
 
   getEmptyValue(): IndicatorResult {

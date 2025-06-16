@@ -30,7 +30,7 @@ export class MACDIndicator implements Indicator {
       calculation: { value: macd },
       signal: macdSignal,
       confidence,
-      string: this.toString(macd, signal, histogram),
+      string: this.toString(macd, signal, histogram, macdSignal, confidence),
     };
   }
 
@@ -116,28 +116,33 @@ export class MACDIndicator implements Indicator {
     return ema;
   }
 
-  private toString(macd: number, signal: number, histogram: number): string {
-    const macdSignal = this.getSignal(macd, signal, histogram);
+  private toString(
+    macd: number,
+    signal: number,
+    histogram: number,
+    macdSignal: "up" | "down" | "neutral",
+    confidence: number
+  ): string {
+    const shouldBuy = macdSignal === "up";
+    const buyEmoji = shouldBuy ? "✅" : "🚫";
     const signalEmoji =
-      macdSignal === "up" ? "🔵" : macdSignal === "down" ? "🔴" : "⚪";
+      macdSignal === "up" ? "⬆️" : macdSignal === "down" ? "⬇️" : "↔️";
     const signalText =
       macdSignal === "up"
-        ? "Bullish"
+        ? "Call - Crossover Up"
         : macdSignal === "down"
-        ? "Bearish"
+        ? "Put - Crossover Down"
         : "Neutral";
-    const actionText =
-      macdSignal === "up"
-        ? "Potential Buy"
-        : macdSignal === "down"
-        ? "Potential Sell"
-        : "No Clear Signal";
 
-    return `MACD: ${signalEmoji} ${signalText} (${macd.toFixed(
+    return `MACD | Buy: ${buyEmoji} ${
+      shouldBuy ? "Yes" : "No"
+    } | Action: ${signalEmoji} (${signalText}) | Confident: ${(
+      confidence * 100
+    ).toFixed(1)} | Weight: ${
+      this.analysisConfig.macd.WEIGHT
+    } | MACD: ${macd.toFixed(2)} | Signal: ${signal.toFixed(
       2
-    )}, ${signal.toFixed(2)}, ${histogram.toFixed(
-      2
-    )}) | ${actionText} | Weight: ${this.analysisConfig.macd.WEIGHT}`;
+    )} | Hist: ${histogram.toFixed(2)}`;
   }
 
   getEmptyValue(): IndicatorResult {

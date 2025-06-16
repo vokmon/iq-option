@@ -32,7 +32,7 @@ export class StochasticIndicator implements Indicator {
       calculation: { value: k },
       signal,
       confidence,
-      string: this.toString(k, d),
+      string: this.toString(k, d, signal, confidence),
     };
   }
 
@@ -119,28 +119,30 @@ export class StochasticIndicator implements Indicator {
     return sum / period;
   }
 
-  private toString(k: number, d: number): string {
-    const signal = this.getSignal(k, d);
+  private toString(
+    k: number,
+    d: number,
+    signal: "up" | "down" | "neutral",
+    confidence: number
+  ): string {
+    const shouldBuy = signal === "up";
+    const buyEmoji = shouldBuy ? "✅" : "🚫";
     const signalEmoji =
-      signal === "up" ? "🔵" : signal === "down" ? "🔴" : "⚪";
+      signal === "up" ? "⬆️" : signal === "down" ? "⬇️" : "↔️";
     const signalText =
       signal === "up"
-        ? "Oversold"
+        ? "Call - Oversold"
         : signal === "down"
-        ? "Overbought"
+        ? "Put - Overbought"
         : "Neutral";
-    const actionText =
-      signal === "up"
-        ? "Potential Buy"
-        : signal === "down"
-        ? "Potential Sell"
-        : "No Clear Signal";
 
-    return `Stochastic: ${signalEmoji} ${signalText} (K: ${k.toFixed(
-      2
-    )}, D: ${d.toFixed(2)}) | ${actionText} | Weight: ${
+    return `Stochastic | Buy: ${buyEmoji} ${
+      shouldBuy ? "Yes" : "No"
+    } | Action: ${signalEmoji} (${signalText}) | Confident: ${(
+      confidence * 100
+    ).toFixed(1)} | Weight: ${
       this.analysisConfig.stochastic.WEIGHT
-    }`;
+    } | K: ${k.toFixed(2)} | D: ${d.toFixed(2)}`;
   }
 
   getEmptyValue(): IndicatorResult {

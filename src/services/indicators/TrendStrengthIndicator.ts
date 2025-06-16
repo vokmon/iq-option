@@ -17,22 +17,18 @@ export class TrendStrengthIndicator implements Indicator {
 
     const currentClose = closes[closes.length - 1]!;
     const { trendStrength, sma } = this.calculateTrendStrength(closes);
-    const signal = this.getSignal(trendStrength, currentClose, sma);
+    const signal = this.getSignal(trendStrength);
     const confidence = this.calculateConfidence(trendStrength);
 
     return {
       calculation: { value: trendStrength },
       signal,
       confidence,
-      string: this.toString(trendStrength, sma),
+      string: this.toString(trendStrength, sma, signal, confidence),
     };
   }
 
-  private getSignal(
-    trendStrength: number,
-    currentClose: number,
-    sma: number
-  ): "up" | "down" | "neutral" {
+  private getSignal(trendStrength: number): "up" | "down" | "neutral" {
     const { THRESHOLD } = this.analysisConfig.trend;
 
     if (Math.abs(trendStrength) > THRESHOLD) {
@@ -67,28 +63,30 @@ export class TrendStrengthIndicator implements Indicator {
     return recentValues.reduce((sum, val) => sum + val, 0) / period;
   }
 
-  private toString(trendStrength: number, sma: number): string {
-    const signal = this.getSignal(trendStrength, 0, sma);
+  private toString(
+    trendStrength: number,
+    sma: number,
+    signal: "up" | "down" | "neutral",
+    confidence: number
+  ): string {
+    const shouldBuy = signal === "up";
+    const buyEmoji = shouldBuy ? "✅" : "🚫";
     const signalEmoji =
-      signal === "up" ? "🔵" : signal === "down" ? "🔴" : "⚪";
+      signal === "up" ? "⬆️" : signal === "down" ? "⬇️" : "↔️";
     const signalText =
       signal === "up"
-        ? "Strong Uptrend"
+        ? "Call - Strong Uptrend"
         : signal === "down"
-        ? "Strong Downtrend"
-        : "No Clear Trend";
-    const actionText =
-      signal === "up"
-        ? "Potential Buy"
-        : signal === "down"
-        ? "Potential Sell"
-        : "No Clear Signal";
+        ? "Put - Strong Downtrend"
+        : "Neutral";
 
-    return `Trend: ${signalEmoji} ${signalText} (Strength: ${trendStrength.toFixed(
-      2
-    )}%, SMA: ${sma.toFixed(2)}) | ${actionText} | Weight: ${
+    return `Trend | Buy: ${buyEmoji} ${
+      shouldBuy ? "Yes" : "No"
+    } | Action: ${signalEmoji} (${signalText}) | Confident: ${(
+      confidence * 100
+    ).toFixed(1)} | Weight: ${
       this.analysisConfig.trend.WEIGHT
-    }`;
+    } | Strength: ${trendStrength.toFixed(2)}% | SMA: ${sma.toFixed(2)}`;
   }
 
   getEmptyValue(): IndicatorResult {

@@ -29,7 +29,6 @@ export class ATRIndicator implements Indicator {
 
     const signal = this.getSignal(
       closes[closes.length - 1]!,
-      atr,
       upperBand,
       lowerBand
     );
@@ -39,13 +38,12 @@ export class ATRIndicator implements Indicator {
       calculation: { value: atr },
       signal,
       confidence,
-      string: this.toString(atr, upperBand, lowerBand),
+      string: this.toString(atr, upperBand, lowerBand, signal, confidence),
     };
   }
 
   private getSignal(
     currentPrice: number,
-    atr: number,
     upperBand: number,
     lowerBand: number
   ): "up" | "down" | "neutral" {
@@ -107,24 +105,33 @@ export class ATRIndicator implements Indicator {
     return { atr, upperBand, lowerBand };
   }
 
-  private toString(atr: number, upperBand: number, lowerBand: number): string {
-    const signal = this.getSignal(0, atr, upperBand, lowerBand);
+  private toString(
+    atr: number,
+    upperBand: number,
+    lowerBand: number,
+    signal: "up" | "down" | "neutral",
+    confidence: number
+  ): string {
+    const shouldBuy = signal === "up";
+    const buyEmoji = shouldBuy ? "✅" : "🚫";
     const signalEmoji =
-      signal === "up" ? "🔵" : signal === "down" ? "🔴" : "⚪";
+      signal === "up" ? "⬆️" : signal === "down" ? "⬇️" : "↔️";
     const signalText =
-      signal === "up" ? "Bullish" : signal === "down" ? "Bearish" : "Neutral";
-    const actionText =
       signal === "up"
-        ? "Potential Buy"
+        ? "Call - Bullish"
         : signal === "down"
-        ? "Potential Sell"
-        : "No Clear Signal";
+        ? "Put - Bearish"
+        : "Neutral";
 
-    return `ATR: ${signalEmoji} ${signalText} (ATR: ${atr.toFixed(
+    return `ATR | Buy: ${buyEmoji} ${
+      shouldBuy ? "Yes" : "No"
+    } | Action: ${signalEmoji} (${signalText}) | Confident: ${(
+      confidence * 100
+    ).toFixed(1)} | Weight: ${
+      this.analysisConfig.atr.WEIGHT
+    } | ATR: ${atr.toFixed(2)} | Upper: ${upperBand.toFixed(
       2
-    )}, Upper: ${upperBand.toFixed(2)}, Lower: ${lowerBand.toFixed(
-      2
-    )}) | ${actionText} | Weight: ${this.analysisConfig.atr.WEIGHT}`;
+    )} | Lower: ${lowerBand.toFixed(2)}`;
   }
 
   getEmptyValue(): IndicatorResult {

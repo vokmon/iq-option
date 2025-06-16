@@ -34,7 +34,7 @@ export class VolumeIndicator implements Indicator {
       calculation: { value: currentVolume },
       signal,
       confidence,
-      string: this.toString(currentVolume, avgVolume),
+      string: this.toString(currentVolume, avgVolume, signal, confidence),
     };
   }
 
@@ -69,28 +69,30 @@ export class VolumeIndicator implements Indicator {
     return recentVolumes.reduce((sum, vol) => sum + vol, 0) / PERIOD;
   }
 
-  private toString(currentVolume: number, avgVolume: number): string {
-    const signal = this.getSignal(currentVolume, avgVolume, 0, 0);
+  private toString(
+    currentVolume: number,
+    avgVolume: number,
+    signal: "up" | "down" | "neutral",
+    confidence: number
+  ): string {
+    const shouldBuy = signal === "up";
+    const buyEmoji = shouldBuy ? "✅" : "🚫";
     const signalEmoji =
-      signal === "up" ? "🔵" : signal === "down" ? "🔴" : "⚪";
+      signal === "up" ? "⬆️" : signal === "down" ? "⬇️" : "↔️";
     const signalText =
       signal === "up"
-        ? "High Volume"
+        ? "Call - High Volume"
         : signal === "down"
-        ? "Low Volume"
-        : "Normal Volume";
-    const actionText =
-      signal === "up"
-        ? "Potential Buy"
-        : signal === "down"
-        ? "Potential Sell"
-        : "No Clear Signal";
+        ? "Put - Low Volume"
+        : "Neutral";
 
-    return `Volume: ${signalEmoji} ${signalText} (Current: ${currentVolume.toFixed(
-      2
-    )}, Avg: ${avgVolume.toFixed(2)}) | ${actionText} | Weight: ${
+    return `Volume | Buy: ${buyEmoji} ${
+      shouldBuy ? "Yes" : "No"
+    } | Action: ${signalEmoji} (${signalText}) | Confident: ${(
+      confidence * 100
+    ).toFixed(1)} | Weight: ${
       this.analysisConfig.volume.WEIGHT
-    }`;
+    } | Current: ${currentVolume.toFixed(2)} | Avg: ${avgVolume.toFixed(2)}`;
   }
 
   getEmptyValue(): IndicatorResult {

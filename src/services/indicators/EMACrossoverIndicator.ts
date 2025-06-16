@@ -28,7 +28,7 @@ export class EMACrossoverIndicator implements Indicator {
       calculation: { value: fastEMA - slowEMA },
       signal,
       confidence,
-      string: this.toString(fastEMA, slowEMA),
+      string: this.toString(fastEMA, slowEMA, signal, confidence),
     };
   }
 
@@ -79,24 +79,30 @@ export class EMACrossoverIndicator implements Indicator {
     return ema;
   }
 
-  private toString(fastEMA: number, slowEMA: number): string {
-    const signal = this.getSignal(fastEMA, slowEMA);
+  private toString(
+    fastEMA: number,
+    slowEMA: number,
+    signal: "up" | "down" | "neutral",
+    confidence: number
+  ): string {
+    const shouldBuy = signal === "up";
+    const buyEmoji = shouldBuy ? "✅" : "🚫";
     const signalEmoji =
-      signal === "up" ? "🔵" : signal === "down" ? "🔴" : "⚪";
+      signal === "up" ? "⬆️" : signal === "down" ? "⬇️" : "↔️";
     const signalText =
-      signal === "up" ? "Bullish" : signal === "down" ? "Bearish" : "Neutral";
-    const actionText =
       signal === "up"
-        ? "Potential Buy"
+        ? "Call - Fast Above Slow"
         : signal === "down"
-        ? "Potential Sell"
-        : "No Clear Signal";
+        ? "Put - Fast Below Slow"
+        : "Neutral";
 
-    return `EMA: ${signalEmoji} ${signalText} (Fast: ${fastEMA.toFixed(
-      2
-    )}, Slow: ${slowEMA.toFixed(2)}) | ${actionText} | Weight: ${
+    return `EMA | Buy: ${buyEmoji} ${
+      shouldBuy ? "Yes" : "No"
+    } | Action: ${signalEmoji} (${signalText}) | Confident: ${(
+      confidence * 100
+    ).toFixed(1)} | Weight: ${
       this.analysisConfig.ema.WEIGHT
-    }`;
+    } | Fast: ${fastEMA.toFixed(2)} | Slow: ${slowEMA.toFixed(2)}`;
   }
 
   getEmptyValue(): IndicatorResult {

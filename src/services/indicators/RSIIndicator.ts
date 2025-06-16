@@ -26,7 +26,7 @@ export class RSIIndicator implements Indicator {
       calculation: { value: rsi },
       signal,
       confidence,
-      string: this.toString(rsi),
+      string: this.toString(rsi, signal, confidence),
     };
   }
 
@@ -86,26 +86,29 @@ export class RSIIndicator implements Indicator {
     return sum / period;
   }
 
-  private toString(rsi: number): string {
-    const signal = this.getSignal(rsi);
+  private toString(
+    rsi: number,
+    signal: "up" | "down" | "neutral",
+    confidence: number
+  ): string {
+    const shouldBuy = signal === "up";
+    const buyEmoji = shouldBuy ? "✅" : "🚫";
     const signalEmoji =
-      signal === "up" ? "🔵" : signal === "down" ? "🔴" : "⚪";
+      signal === "up" ? "⬆️" : signal === "down" ? "⬇️" : "↔️";
     const signalText =
       signal === "up"
-        ? "Oversold"
+        ? "Call - Oversold"
         : signal === "down"
-        ? "Overbought"
+        ? "Put - Overbought"
         : "Neutral";
-    const actionText =
-      signal === "up"
-        ? "Potential Buy"
-        : signal === "down"
-        ? "Potential Sell"
-        : "No Clear Signal";
 
-    return `RSI: ${signalEmoji} ${signalText} (${rsi.toFixed(
-      2
-    )}) | ${actionText} | Weight: ${this.analysisConfig.rsi.WEIGHT}`;
+    return `RSI | Buy: ${buyEmoji} ${
+      shouldBuy ? "Yes" : "No"
+    } | Action: ${signalEmoji} (${signalText}) | Confident: ${(
+      confidence * 100
+    ).toFixed(1)} | Weight: ${
+      this.analysisConfig.rsi.WEIGHT
+    } | RSI: ${rsi.toFixed(2)}`;
   }
 
   getEmptyValue(): IndicatorResult {
