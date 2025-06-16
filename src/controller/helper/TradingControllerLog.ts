@@ -3,7 +3,6 @@ import type { TradingState } from "../../models/TradingState";
 import { getTradeWorkerEnvConfig } from "../../models/environment/TradeWorkerEnvConfig";
 import { createWorkerLogger } from "../../utils/AppLogger";
 import { calculateTradingStats } from "../../utils/TradingStatsUtils";
-import { getGlobalEnvConfig } from "../../models/environment/GlobalEnvConfig";
 
 export class TradingControllerLog {
   private readonly tradingConfig = getTradeWorkerEnvConfig();
@@ -26,6 +25,7 @@ export class TradingControllerLog {
    • ชื่อสินทรัพย์: ${position.active?.name}
    • Direction: ${position.direction?.toUpperCase()}
    • Status: ${position.status}
+   • Close Reason: ${position.closeReason}
 
 💰 รายละเอียดการซื้อ:
    • จำนวนเงินที่ซื้อ: ${position.invest}
@@ -65,7 +65,9 @@ ${positions
       • Direction: ${position.direction}
       • Invest: ${position.invest}
       • Open Quote: ${position.openQuote}
-      • Close Quote: ${position.closeQuote}`;
+      • Close Quote: ${position.closeQuote}
+      • Close Reason: ${position.closeReason}
+      `;
   })
   .join("\n")}
 
