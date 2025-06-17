@@ -9,7 +9,7 @@ import path from "path";
 // Create log folder
 const globalConfig = getGlobalEnvConfig();
 const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
-const workerId = Bun.argv.slice(2)[3] as string;
+const workerId = Bun.argv.slice(2)[1] as string;
 const logFolderName = `trade_${workerId}_${timestamp}`;
 const logFolderPath = path.join(globalConfig.LOG_PATH, logFolderName);
 
@@ -38,36 +38,26 @@ async function start() {
   try {
     // Parse command line arguments
     const args = Bun.argv.slice(2);
-    if (args.length !== 5) {
+    if (args.length !== 3) {
       mainLogger.error("❌ กรุณาระบุพารามิเตอร์ทั้งหมด");
       mainLogger.error(
-        "ตัวอย่าง: bun start:trade <CANDLE_INTERVAL_SECONDS> <CANDLE_ANALYSIS_PERIOD_MINUTES> <MAX_TRADE_CYCLE> <INSTRUMENT_ID/INSTRUMENT_NAME> <BUY_AMOUNT>"
+        "ตัวอย่าง: bun start:trade <MAX_TRADE_CYCLE> <INSTRUMENT_ID/INSTRUMENT_NAME> <BUY_AMOUNT>"
       );
-      mainLogger.error("ตัวอย่าง: bun start:trade 15 15 1 1865 1");
+      mainLogger.error("ตัวอย่าง: bun start:trade 5 1865 1");
       process.exit(1);
     }
 
-    const candleIntervalSeconds = args[0] as string;
-    const analysisPeriodMinutes = args[1] as string;
-    const maxTradeCycle = args[2] as string;
-    const instrumentId = args[3] as string;
-    const buyAmount = args[4] as string;
+    const maxTradeCycle = args[0] as string;
+    const instrumentId = args[1] as string;
+    const buyAmount = args[2] as string;
 
     // Print trading configuration
-    printTradingConfiguration(
-      candleIntervalSeconds,
-      analysisPeriodMinutes,
-      maxTradeCycle,
-      instrumentId,
-      buyAmount
-    );
+    printTradingConfiguration(maxTradeCycle, instrumentId, buyAmount);
 
     // Start trading service in a separate process
     const tradingProcess = Bun.spawn(["bun", "src/workers/TradingWorker.ts"], {
       env: {
         ...process.env,
-        CANDLE_INTERVAL_SECONDS: candleIntervalSeconds,
-        CANDLE_ANALYSIS_PERIOD_MINUTES: analysisPeriodMinutes,
         MAX_TRADE_CYCLES: maxTradeCycle,
         INSTRUMENT: instrumentId,
         BUY_AMOUNT: buyAmount,
@@ -87,8 +77,6 @@ async function start() {
 start();
 
 function printTradingConfiguration(
-  candleIntervalSeconds: string,
-  analysisPeriodMinutes: string,
   maxTradeCycle: string,
   instrumentId: string,
   buyAmount: string
@@ -99,10 +87,7 @@ function printTradingConfiguration(
    • รหัสสินทรัพย์:              ${instrumentId}
    • จำนวนเงินที่ซื้อ:            ${buyAmount}
    • จำนวนรอบสูงสุด (รอบ):     ${maxTradeCycle}
-
-📊 การตั้งค่าการวิเคราะห์:
-   • ระยะเวลาของแท่งเทียน: ${candleIntervalSeconds} วินาที
-   • ระยะเวลาการวิเคราะห์: ${analysisPeriodMinutes} นาที
+   
 =======================================================================
 `;
 

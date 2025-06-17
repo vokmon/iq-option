@@ -3,6 +3,7 @@ import { createWorkerLogger } from "../../../utils/AppLogger";
 import { getTradeWorkerEnvConfig } from "../../../models/environment/TradeWorkerEnvConfig";
 import { getAnalysisEnvConfig } from "../../../models/environment/AnalysisEnvConfig";
 import type { TradingState } from "../../../models/TradingState";
+import type { Candle } from "@quadcode-tech/client-sdk-js";
 
 export class AnalysisLogger {
   private readonly tradeConfig = getTradeWorkerEnvConfig();
@@ -14,23 +15,50 @@ export class AnalysisLogger {
 
   constructor(private readonly tradingState: TradingState) {}
 
-  logCandleData(candles: any[]): void {
-    const currentTradeNumber = this.tradingState.getCurrentTradeNumber();
+  private formatTimeframeDetails(
+    timeframeName: string,
+    candles: Candle[],
+    lookbackPeriod: number
+  ): string {
     const startTime = new Date(Math.floor(candles[0]?.at! / 1000000));
     const endTime = new Date(
       Math.floor(candles[candles.length - 1]?.at! / 1000000)
     );
 
-    const logMessage = `
-📊 ==================== Trade #${currentTradeNumber} Candle Analysis ====================
-📈 Candle Details:
+    return `📈 ${timeframeName} Details:
    • Total Candles: ${candles.length}
    • Time Range: ${startTime.toLocaleString()} - ${endTime.toLocaleString()}
-   • Interval: ${this.tradeConfig.CANDLE_INTERVAL_SECONDS} seconds
-   • Analysis Period: ${this.tradeConfig.CANDLE_ANALYSIS_PERIOD_MINUTES} minutes
-=====================================================================\n`;
+   • Lookback Period: ${lookbackPeriod} periods`;
+  }
 
-    this.logger.info(logMessage);
+  logCandleData(candles: {
+    smallTimeframeCandles: Candle[];
+    bigTimeframeCandles: Candle[];
+  }): void {
+    const {
+      LOOKBACK_PERIOD,
+      MIN_CONFIDENCE_THRESHOLD,
+      ANALYSIS_WAIT_TIME_BETWEEN_TRADES_SECONDS,
+    } = this.analysisConfig;
+
+    this.logger.info(`
+📊 ==================== Trade #${this.tradingState.getCurrentTradeNumber()} Candle Analysis ====================
+${this.formatTimeframeDetails(
+  "Small Timeframe (15m)",
+  candles.smallTimeframeCandles,
+  LOOKBACK_PERIOD
+)}
+
+${this.formatTimeframeDetails(
+  "Big Timeframe (60m)",
+  candles.bigTimeframeCandles,
+  LOOKBACK_PERIOD
+)}
+
+📊 Analysis Configuration:
+   • Minimum Confidence: ${MIN_CONFIDENCE_THRESHOLD}
+   • Wait Time Between Trades: ${ANALYSIS_WAIT_TIME_BETWEEN_TRADES_SECONDS} seconds
+=====================================================================\n`);
   }
 
   logAnalysisResult(analysis: AnalysisResult): void {
@@ -39,6 +67,18 @@ export class AnalysisLogger {
       ? analysis.direction.toUpperCase()
       : "NONE";
 
+    const directionEmoji =
+      analysis.direction === "call"
+        ? "⬆️"
+        : analysis.direction === "put"
+        ? "⬇️"
+        : "↔️";
+
+    const confidenceEmoji =
+      analysis.confidence >= this.analysisConfig.MIN_CONFIDENCE_THRESHOLD
+        ? "✅"
+        : "";
+
     const indicatorStrings = Object.values(analysis.indicators).map(
       (ind) => ind.string
     );
@@ -46,11 +86,11 @@ export class AnalysisLogger {
     const logMessage = `
 📊 ==================== Trade #${currentTradeNumber} Analysis Result ====================
 📈 Analysis Details:
-   • Direction: ${direction}
-   • Confidence: ${analysis.confidence}
    • Should Trade: ${analysis.shouldTrade ? "✅ YES" : "❌ NO"}
+   • Direction: ${directionEmoji}  ${direction}
+   • Confidence: ${confidenceEmoji} ${analysis.confidence}
    • Minimum Required Confidence: ${
-     this.analysisConfig.decision.MIN_CONFIDENCE_THRESHOLD
+     this.analysisConfig.MIN_CONFIDENCE_THRESHOLD
    }
 
 📊 Technical Indicators:
@@ -67,10 +107,9 @@ export class AnalysisLogger {
       this.analysisConfig.ANALYSIS_WAIT_TIME_BETWEEN_TRADES_SECONDS;
 
     const logMessage = `
-⏳ ==================== Trade #${currentTradeNumber} Waiting ====================
+⏳ ======================== Trade #${currentTradeNumber} Waiting ========================
 🕒 Waiting Details:
    • Time: ${waitTime} seconds
-   • Reason: No suitable trading conditions found
    • Next Analysis: ${new Date(Date.now() + waitTime * 1000).toLocaleString()}
 =====================================================================\n`;
 

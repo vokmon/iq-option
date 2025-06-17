@@ -1,21 +1,20 @@
 import type { ClientSdk } from "@quadcode-tech/client-sdk-js";
 import { TradingState } from "../models/TradingState";
 import { getCandles } from "../utils/ClientUtils";
-import { TechnicalAnalysisService } from "./TechnicalAnalysisService";
 import type { AnalysisResult } from "../models/Analysis";
 import { AnalysisLogger } from "./helpers/logging/AnalysisLogger";
 import { getAnalysisEnvConfig } from "../models/environment/AnalysisEnvConfig";
+import { SupportResistanceAnalysisService } from "./SupportResistanceAnalysisService";
 
 interface CandleData {
   instrumentId: number;
   date: Date;
-  analysisMinutes: number;
-  candleIntervalSeconds: number;
 }
 
 export class CandleAnalysisService {
   private readonly analysisConfig = getAnalysisEnvConfig();
-  private readonly technicalAnalysis = new TechnicalAnalysisService();
+  private readonly supportResistanceAnalysisService =
+    new SupportResistanceAnalysisService();
   private readonly analysisLogger: AnalysisLogger;
 
   constructor(
@@ -31,7 +30,10 @@ export class CandleAnalysisService {
         const candles = await this.getCandleData(candleData);
         this.analysisLogger.logCandleData(candles);
 
-        const analysis = this.technicalAnalysis.analyzeCandles(candles);
+        const analysis = this.supportResistanceAnalysisService.analyzeCandles({
+          smallTimeframeCandles: candles.smallTimeframeCandles,
+          bigTimeframeCandles: candles.bigTimeframeCandles,
+        });
         this.analysisLogger.logAnalysisResult(analysis);
 
         if (analysis.shouldTrade) {
@@ -51,15 +53,41 @@ export class CandleAnalysisService {
   }
 
   private async getCandleData(candleData: CandleData) {
-    const { instrumentId, date, analysisMinutes, candleIntervalSeconds } =
-      candleData;
-    const candles = await getCandles({
+    const { instrumentId, date } = candleData;
+
+    const [smallTimeframeCandles, bigTimeframeCandles] = await Promise.all([
+      this.getTimeframeCandles(
+        instrumentId,
+        date,
+        this.analysisConfig.SMALL_TIME_FRAME_CANDLE_INTERVAL_MINUTES
+      ),
+      this.getTimeframeCandles(
+        instrumentId,
+        date,
+        this.analysisConfig.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES
+      ),
+    ]);
+
+    return {
+      smallTimeframeCandles,
+      bigTimeframeCandles,
+    };
+  }
+
+  private async getTimeframeCandles(
+    instrumentId: number,
+    date: Date,
+    intervalMinutes: number
+  ) {
+    const analysisMinutes =
+      intervalMinutes * this.analysisConfig.LOOKBACK_PERIOD;
+
+    return await getCandles({
       clientSdk: this.clientSdk,
       instrumentId,
       date,
       analysisMinutes,
-      candleIntervalSeconds,
+      candleIntervalSeconds: intervalMinutes * 60,
     });
-    return candles;
   }
 }

@@ -74,8 +74,6 @@ export class TradingController {
           const analysis = await candleAnalysisService.analyzeCandles({
             instrumentId: active.id,
             date: new Date(),
-            analysisMinutes: this.tradeConfig.CANDLE_ANALYSIS_PERIOD_MINUTES,
-            candleIntervalSeconds: this.tradeConfig.CANDLE_INTERVAL_SECONDS,
           });
 
           const order = await orderService.placeOrder({

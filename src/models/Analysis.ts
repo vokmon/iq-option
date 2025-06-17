@@ -1,50 +1,25 @@
 import type { BinaryOptionsDirection } from "@quadcode-tech/client-sdk-js";
 
 export interface TechnicalIndicators {
-  rsi: {
-    value: number;
-    string: string;
-  };
-  macd: {
-    macdLine: number;
-    signalLine: number;
-    histogram: number;
-    string: string;
-  };
-  bollinger: {
-    upper: number;
-    middle: number;
-    lower: number;
-    string: string;
-  };
-  stochastic: {
-    k: number;
-    d: number;
-    rsi: number;
-    string: string;
-  };
-  ema: {
-    fast: number;
-    slow: number;
-    crossover: number;
-    string: string;
-  };
-  atr: {
-    atr: number;
+  supportResistance: {
+    sma: number;
     upperBand: number;
     lowerBand: number;
-    string: string;
-  };
-  volume: {
-    volume: number;
-    volumeMA: number;
-    volumeRatio: number;
-    string: string;
-  };
-  trend: {
-    adx: number;
-    trendStrength: number;
-    trendDirection: number;
+    upperBand1: number;
+    lowerBand1: number;
+    rsi: number;
+    r4: number;
+    r3: number;
+    s3: number;
+    s4: number;
+    buyCon1: boolean;
+    buyCon2: boolean;
+    buyCon21: boolean;
+    buyCon3: boolean;
+    sellCon1: boolean;
+    sellCon2: boolean;
+    sellCon21: boolean;
+    sellCon3: boolean;
     string: string;
   };
 }
@@ -54,5 +29,4 @@ export interface AnalysisResult {
   confidence: number;
   shouldTrade: boolean;
   indicators: TechnicalIndicators;
-  signalStrength: number;
 }

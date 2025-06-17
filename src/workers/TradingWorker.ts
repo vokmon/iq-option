@@ -19,8 +19,6 @@ const workerLogger = createWorkerLogger({
 
 // Validate required environment variables
 const requiredEnvVars = [
-  "CANDLE_INTERVAL_SECONDS",
-  "CANDLE_ANALYSIS_PERIOD_MINUTES",
   "MAX_TRADE_CYCLES",
   "INSTRUMENT",
   "BUY_AMOUNT",
