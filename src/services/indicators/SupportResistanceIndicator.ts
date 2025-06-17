@@ -1,13 +1,21 @@
 import type { Indicator } from "./Indicator";
 import type { IndicatorResult } from "./Indicator";
 import type { Candle } from "@quadcode-tech/client-sdk-js";
+import { getAnalysisEnvConfig } from "../../models/environment/AnalysisEnvConfig";
 
 export class SupportResistanceIndicator implements Indicator {
-  private readonly period = 14;
-  private readonly stdDevMultiplier = 2;
-  private readonly stdDevMultiplier1 = 1.75;
-  private readonly rsiBuyThreshold = 40; // RSI threshold for buy signals
-  private readonly rsiSellThreshold = 60; // RSI threshold for sell signals
+  private readonly analysisConfig = getAnalysisEnvConfig();
+
+  private readonly period =
+    this.analysisConfig.analysis.ANALYSIS_PERIOD_MINUTES;
+  private readonly stdDevMultiplier =
+    this.analysisConfig.analysis.STD_DEV_MULTIPLIER;
+  private readonly stdDevMultiplier1 =
+    this.analysisConfig.analysis.STD_DEV_MULTIPLIER_1;
+  private readonly rsiBuyThreshold =
+    this.analysisConfig.analysis.RSI_BUY_THRESHOLD; // RSI threshold for buy signals
+  private readonly rsiSellThreshold =
+    this.analysisConfig.analysis.RSI_SELL_THRESHOLD; // RSI threshold for sell signals
   private smallTimeframeCandles: Candle[] = [];
   private bigTimeframeCandles: Candle[] = [];
 
