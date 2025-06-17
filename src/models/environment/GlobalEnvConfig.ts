@@ -12,7 +12,7 @@ export interface GlobalEnvConfig {
 
   // Logger Configuration
   LOG_PATH: string;
-  LOG_TO_FILE: string;
+  LOG_TO_FILE: boolean;
 
   // Trade Configuration
   SELL_WHEN_PROFIT_ABOVE_PERCENTAGE: number;
@@ -30,7 +30,7 @@ export function getGlobalEnvConfig(): GlobalEnvConfig {
 
     // Logger Configuration
     LOG_PATH: process.env.LOG_PATH || "/logs",
-    LOG_TO_FILE: process.env.LOG_TO_FILE || "true",
+    LOG_TO_FILE: process.env.LOG_TO_FILE === "true",
 
     // Trade Configuration
     SELL_WHEN_PROFIT_ABOVE_PERCENTAGE:
