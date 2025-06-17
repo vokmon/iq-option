@@ -59,7 +59,7 @@ export class PositionMonitorService {
         } catch (error) {
           console.error("Error in position monitoring:", error);
           this.cleanup(); // Cleanup on error
-          reject(error);
+          // reject(error);
         }
       }, this.intervalTimeInSeconds * 1000);
     });
