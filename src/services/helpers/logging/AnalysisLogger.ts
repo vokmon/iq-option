@@ -3,7 +3,7 @@ import { createWorkerLogger } from "../../../utils/AppLogger";
 import { getTradeWorkerEnvConfig } from "../../../models/environment/TradeWorkerEnvConfig";
 import { getAnalysisEnvConfig } from "../../../models/environment/AnalysisEnvConfig";
 import type { TradingState } from "../../../models/TradingState";
-import type { Candle } from "@quadcode-tech/client-sdk-js";
+import type { BinaryOptionsActive, Candle } from "@quadcode-tech/client-sdk-js";
 
 export class AnalysisLogger {
   private readonly tradeConfig = getTradeWorkerEnvConfig();
@@ -34,6 +34,7 @@ export class AnalysisLogger {
   logCandleData(candles: {
     smallTimeframeCandles: Candle[];
     bigTimeframeCandles: Candle[];
+    active: BinaryOptionsActive;
   }): void {
     const {
       LOOKBACK_PERIOD,
@@ -43,6 +44,8 @@ export class AnalysisLogger {
 
     this.logger.info(`
 📊 ==================== Trade #${this.tradingState.getCurrentTradeNumber()} Candle Analysis ====================
+   • Instrument: ${candles.active.ticker} | ${candles.active.id}
+
 ${this.formatTimeframeDetails(
   "Small Timeframe (15m)",
   candles.smallTimeframeCandles,
@@ -61,7 +64,10 @@ ${this.formatTimeframeDetails(
 =====================================================================\n`);
   }
 
-  logAnalysisResult(analysis: AnalysisResult): void {
+  logAnalysisResult(
+    analysis: AnalysisResult,
+    active: BinaryOptionsActive
+  ): void {
     const currentTradeNumber = this.tradingState.getCurrentTradeNumber();
     const direction = analysis.direction
       ? analysis.direction.toUpperCase()
@@ -86,6 +92,7 @@ ${this.formatTimeframeDetails(
     const logMessage = `
 📊 ==================== Trade #${currentTradeNumber} Analysis Result ====================
 📈 Analysis Details:
+   • Instrument: ${active.ticker} | ${active.id}
    • Should Trade: ${analysis.shouldTrade ? "✅ YES" : "❌ NO"}
    • Direction: ${directionEmoji}  ${direction}
    • Confidence: ${confidenceEmoji} ${analysis.confidence}

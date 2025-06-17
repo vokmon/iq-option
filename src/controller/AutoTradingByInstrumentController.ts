@@ -18,7 +18,7 @@ import { PositionMonitorService } from "../services/PositionMonitorService";
 import { PositionMiddlewares } from "../services/middlewares/positions/impl/PositionMiddlewares";
 import { TradingControllerLog } from "./helper/TradingControllerLog";
 
-export class TradingController {
+export class AutoTradingByInstrumentController {
   private readonly globalConfig = getGlobalEnvConfig();
   private readonly tradeConfig = getTradeWorkerEnvConfig();
   private readonly logger = createWorkerLogger({
@@ -68,6 +68,7 @@ export class TradingController {
         try {
           const candleAnalysisService = new CandleAnalysisService(
             clientSdk,
+            active,
             this.tradingState
           );
 

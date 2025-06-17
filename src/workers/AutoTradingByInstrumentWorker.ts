@@ -1,6 +1,6 @@
 import { createWorkerLogger } from "../utils/AppLogger";
 import { getTradeWorkerEnvConfig } from "../models/environment/TradeWorkerEnvConfig";
-import { TradingController } from "../controller/TradingController";
+import { AutoTradingByInstrumentController } from "../controller/AutoTradingByInstrumentController";
 
 // Get log folder path from environment
 const logFolderPath = process.env.LOG_FOLDER_PATH;
@@ -33,7 +33,7 @@ for (const envVar of requiredEnvVars) {
 
 async function startTrading() {
   try {
-    const tradingController = new TradingController();
+    const tradingController = new AutoTradingByInstrumentController();
     await tradingController.start();
   } catch (error) {
     workerLogger.error("Error in trading worker:", { error });

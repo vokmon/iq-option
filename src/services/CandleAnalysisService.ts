@@ -1,4 +1,7 @@
-import type { ClientSdk } from "@quadcode-tech/client-sdk-js";
+import type {
+  BinaryOptionsActive,
+  ClientSdk,
+} from "@quadcode-tech/client-sdk-js";
 import { TradingState } from "../models/TradingState";
 import { getCandles } from "../utils/ClientUtils";
 import type { AnalysisResult } from "../models/Analysis";
@@ -19,6 +22,7 @@ export class CandleAnalysisService {
 
   constructor(
     private readonly clientSdk: ClientSdk,
+    private readonly active: BinaryOptionsActive,
     private readonly tradingState: TradingState
   ) {
     this.analysisLogger = new AnalysisLogger(tradingState);
@@ -28,13 +32,16 @@ export class CandleAnalysisService {
     return new Promise(async (resolve) => {
       while (true) {
         const candles = await this.getCandleData(candleData);
-        this.analysisLogger.logCandleData(candles);
+        this.analysisLogger.logCandleData({
+          ...candles,
+          active: this.active,
+        });
 
         const analysis = this.supportResistanceAnalysisService.analyzeCandles({
           smallTimeframeCandles: candles.smallTimeframeCandles,
           bigTimeframeCandles: candles.bigTimeframeCandles,
         });
-        this.analysisLogger.logAnalysisResult(analysis);
+        this.analysisLogger.logAnalysisResult(analysis, this.active);
 
         if (analysis.shouldTrade) {
           resolve(analysis);

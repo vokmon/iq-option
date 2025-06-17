@@ -55,16 +55,19 @@ async function start() {
     printTradingConfiguration(maxTradeCycle, instrumentId, buyAmount);
 
     // Start trading service in a separate process
-    const tradingProcess = Bun.spawn(["bun", "src/workers/TradingWorker.ts"], {
-      env: {
-        ...process.env,
-        MAX_TRADE_CYCLES: maxTradeCycle,
-        INSTRUMENT: instrumentId,
-        BUY_AMOUNT: buyAmount,
-        LOG_FOLDER_PATH: logFolderPath, // Pass log folder path to worker
-      },
-      stdio: ["inherit", "inherit", "inherit"],
-    });
+    const tradingProcess = Bun.spawn(
+      ["bun", "src/workers/AutoTradingByInstrumentWorker.ts"],
+      {
+        env: {
+          ...process.env,
+          MAX_TRADE_CYCLES: maxTradeCycle,
+          INSTRUMENT: instrumentId,
+          BUY_AMOUNT: buyAmount,
+          LOG_FOLDER_PATH: logFolderPath, // Pass log folder path to worker
+        },
+        stdio: ["inherit", "inherit", "inherit"],
+      }
+    );
 
     await tradingProcess.exited;
 
