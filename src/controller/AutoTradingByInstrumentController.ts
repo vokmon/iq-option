@@ -83,9 +83,7 @@ export class AutoTradingByInstrumentController {
             amount: this.tradeConfig.BUY_AMOUNT,
           });
 
-          const position = await positionMonitorService.monitorPosition(
-            order.id
-          );
+          const position = await positionMonitorService.monitorPosition(order);
 
           this.tradingState.addResultOfPosition(position);
           this.tradingControllerLog.logTradingPositionClosed(position);

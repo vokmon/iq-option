@@ -1,6 +1,3 @@
-// Load environment variables
-const env = process.env;
-
 // Import logger
 import { initializeLoggers } from "./utils/AppLogger";
 import { getGlobalEnvConfig } from "./models/environment/GlobalEnvConfig";
@@ -17,22 +14,6 @@ const logFolderPath = path.join(globalConfig.LOG_PATH, logFolderName);
 const { mainLogger } = initializeLoggers({
   logFolderPath,
 });
-
-// Validate required environment variables
-const requiredEnvVars = [
-  "API_URL",
-  "ACCESS_TOKEN",
-  "LOGIN_URL",
-  "LOGIN_EMAIL",
-  "LOGIN_PASSWORD",
-] as const;
-
-for (const envVar of requiredEnvVars) {
-  if (!env[envVar]) {
-    mainLogger.error(`Missing required environment variable: ${envVar}`);
-    throw new Error(`Missing required environment variable: ${envVar}`);
-  }
-}
 
 async function start() {
   try {

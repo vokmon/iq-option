@@ -23,6 +23,7 @@ export class PositionMiddlewares {
       ) {
         await position.sell();
         this.positionMonitorLogger.logSellDecision(position);
+        // resolve(position);
       }
     };
   }

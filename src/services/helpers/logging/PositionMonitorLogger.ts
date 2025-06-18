@@ -1,4 +1,7 @@
-import type { Position } from "@quadcode-tech/client-sdk-js";
+import type {
+  BinaryOptionsOption,
+  Position,
+} from "@quadcode-tech/client-sdk-js";
 import type { TradingState } from "../../../models/TradingState";
 import { getGlobalEnvConfig } from "../../../models/environment/GlobalEnvConfig";
 import { createWorkerLogger } from "../../../utils/AppLogger";
@@ -14,9 +17,18 @@ export class PositionMonitorLogger {
 
   constructor(private readonly tradingState: TradingState) {}
 
-  logConnectionSuccess(): void {
+  logConnectionSuccess(order: BinaryOptionsOption): void {
+    const currentTradeNumber = this.tradingState.getCurrentTradeNumber();
     const logMessage = `
-    🔄 ================= Connection to the server is successful ================`;
+🔄 ================= Trade #${currentTradeNumber} Connection to the server is successful: Order Details ================
+  • Order ID: ${order.id}
+  • Active ID: ${order.activeId}
+  • Amount: ${order.price}
+  • Direction: ${order.direction?.toUpperCase()}
+  • Open Time: ${order.openedAt?.toLocaleString()}
+  • Open Price: ${order.openQuoteValue}
+  • Expired At: ${new Date(order.expiredAt).toLocaleString()}
+===============================================================================================================`;
     this.logger.info(logMessage);
   }
 
