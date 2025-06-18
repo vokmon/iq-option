@@ -2,6 +2,7 @@ import {
   BinaryOptionsOption,
   ClientSdk,
   Position,
+  InstrumentType,
 } from "@quadcode-tech/client-sdk-js";
 import { TradingState } from "../models/TradingState";
 import { getGlobalEnvConfig } from "../models/environment/GlobalEnvConfig";
@@ -25,7 +26,7 @@ export class PositionMonitorService {
     this.middlewares = middlewares || [];
   }
 
-  async monitorPosition(order: BinaryOptionsOption): Promise<Position> {
+  async monitorPosition(order: BinaryOptionsOption): Promise<Position | null> {
     return new Promise((resolve, reject) => {
       this.interval = setInterval(async () => {
         try {
@@ -40,6 +41,17 @@ export class PositionMonitorService {
           this.positionMonitorLogger.logConnectionSuccess(order);
 
           const positions = await this.currentClientSdk.positions();
+          const positionOrder = positions
+            .getAllPositions()
+            .filter(
+              (position) =>
+                position.instrumentType === InstrumentType.BinaryOption &&
+                position.externalId === order.id
+            );
+
+          if (!positionOrder || positionOrder.length === 0) {
+            resolve(null);
+          }
           positions.subscribeOnUpdatePosition(async (position) => {
             if (position.externalId === order.id) {
               // print here can be too much
@@ -55,7 +67,7 @@ export class PositionMonitorService {
               }
 
               // If position is closed, cleanup and resolve
-              if (position.status === "closed") {
+              if (position.status?.toLowerCase().includes("close")) {
                 this.positionMonitorLogger.logPositionUpdate(position);
                 this.cleanup();
                 resolve(position);

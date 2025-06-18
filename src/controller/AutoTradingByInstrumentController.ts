@@ -84,9 +84,10 @@ export class AutoTradingByInstrumentController {
           });
 
           const position = await positionMonitorService.monitorPosition(order);
-
-          this.tradingState.addResultOfPosition(position);
-          this.tradingControllerLog.logTradingPositionClosed(position);
+          if (position) {
+            this.tradingState.addResultOfPosition(position);
+            this.tradingControllerLog.logTradingPositionClosed(position);
+          }
         } catch (error) {
           this.logger.error("Error in trading service:", { error });
         } finally {
