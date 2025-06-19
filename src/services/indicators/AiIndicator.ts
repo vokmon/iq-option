@@ -70,7 +70,7 @@ json
 
   signal: up | down | neutral,  // Direction for the binary option trade - The output should directly help you decide whether to enter a call (up) trade, put (down) trade, or hold (neutral)
   confidence: number,        // Value from 0 to 1 indicating how strong the signal is
-  string: ...              // A clear and brief explanation like: Strong bullish reversal after consolidation at support
+  string: ...              // A clear and brief explanation - output in Thai language
 
 Be direct and actionable. Your output should help a trader decide whether to place a binary option trade right now.
 
