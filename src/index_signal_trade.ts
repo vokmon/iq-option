@@ -28,8 +28,12 @@ interface SignalInfo {
   zone: string;
 }
 
+const MAX_SIGNAL_AGE_SECONDS = 10;
+
 async function start() {
   let unsubscribe: (() => void) | null = null;
+  let isSubscribed = false;
+
   try {
     // Parse command line arguments
     const args = Bun.argv.slice(2);
@@ -58,85 +62,135 @@ async function start() {
     let currentCount = 0;
     let totalTrade = 0;
 
-    unsubscribe = firestoreRepo.subscribeToCollection(
-      signals[minute as keyof typeof signals],
-      (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-          if (change.type === "added") {
-            const data = change.doc.data();
-            const createdAt = new Date(data?.created.seconds * 1000);
-            const message = data?.message;
+    // Function to handle trade completion and resubscription
+    const handleTradeCompletion = (
+      signalInfo: SignalInfo,
+      code: number | null,
+      signal: number | null
+    ) => {
+      currentCount--;
+      if (code === 0) {
+        totalTrade++;
+        const completionCode = code !== null ? String(code) : null;
+        logTradeCompletion(
+          signalInfo,
+          completionCode,
+          signal?.toString() ?? null,
+          totalTrade,
+          maxTotalTrade
+        );
+      } else {
+        const errorCode = code !== null ? String(code) : null;
+        logSignalError(signalInfo, errorCode, signal);
+      }
+
+      if (totalTrade >= maxTotalTrade) {
+        mainLogger.info(
+          `🚧 จำนวนการทำงานครบจำนวนที่กำหนด ${totalTrade}/${maxTotalTrade}`
+        );
+        if (unsubscribe) {
+          unsubscribe();
+        }
+        mainLogger.info("✅ จบการทำงาน...");
+        process.exit(0);
+      }
+
+      // Resubscribe if we're below capacity and not already subscribed
+      if (currentCount < maxConcurrentTrade && !isSubscribed) {
+        mainLogger.info(
+          `🔄 พร้อมรับสัญญาณใหม่ - เริ่มการเชื่อมต่อ Firestore อีกครั้ง`
+        );
+        // Re-establish subscription
+        isSubscribed = true;
+        const secondsAgo = new Date(Date.now() - MAX_SIGNAL_AGE_SECONDS * 1000);
+        unsubscribe = firestoreRepo.subscribeToCollection(
+          signals[minute as keyof typeof signals],
+          handleSignalSnapshot,
+          {
+            where: { field: "created", operator: ">=", value: secondsAgo },
+            orderBy: { field: "created", direction: "desc" },
+            limit: 1,
+          }
+        );
+      }
+
+      logWaitingForSignal(
+        currentCount,
+        maxConcurrentTrade,
+        totalTrade,
+        maxTotalTrade
+      );
+    };
+
+    // Function to handle signal snapshot
+    const handleSignalSnapshot = (snapshot: any) => {
+      snapshot.docChanges().forEach((change: any) => {
+        if (change.type === "added") {
+          const data = change.doc.data();
+          const createdAt = new Date(data?.created.seconds * 1000);
+          const message = data?.message;
+
+          mainLogger.info(
+            `🔔 ได้รับสัญญาณการซื้อขาย: ${message} at ${createdAt.toLocaleString()}`
+          );
+
+          if (currentCount >= maxConcurrentTrade) {
             mainLogger.info(
-              `🔔 ได้รับสัญญาณการซื้อขาย: ${message} at ${createdAt.toLocaleString()}`
+              `🚧 มีการซื้อขายอยู่มากกว่าจำนวนที่กำหนด ${currentCount}/${maxConcurrentTrade}`
+            );
+            return;
+          }
+
+          if (currentCount < maxConcurrentTrade) {
+            currentCount++;
+            const signalInfo = parseSignalMessage(message);
+            logSignalExecution(
+              signalInfo,
+              args[3] || "0",
+              currentCount,
+              maxConcurrentTrade,
+              createdAt,
+              totalTrade,
+              maxTotalTrade
             );
 
-            if (currentCount < maxConcurrentTrade) {
-              currentCount++;
-              const signalInfo = parseSignalMessage(message);
-              logSignalExecution(
-                signalInfo,
-                args[2] || "0",
-                currentCount,
-                maxConcurrentTrade,
-                createdAt,
-                totalTrade,
-                maxTotalTrade
-              );
-
-              Bun.spawn(["bun", "src/workers/TradeWorker.ts"], {
-                env: {
-                  ...process.env,
-                  SIGNAL_DIRECTION: signalInfo.direction,
-                  INSTRUMENT: signalInfo.instrument,
-                  BUY_AMOUNT: String(buyAmount),
-                  LOG_FOLDER_PATH: logFolderPath, // Pass log folder path to worker
-                },
-                stdio: ["inherit", "inherit", "inherit"],
-                onExit: (_subprocess, code, signal) => {
-                  currentCount--;
-                  if (code === 0) {
-                    totalTrade++;
-                    const completionCode = code !== null ? String(code) : null;
-                    logTradeCompletion(
-                      signalInfo,
-                      completionCode,
-                      signal?.toString() ?? null,
-                      totalTrade,
-                      maxTotalTrade
-                    );
-                  } else {
-                    const errorCode = code !== null ? String(code) : null;
-                    logSignalError(signalInfo, errorCode, signal);
-                  }
-
-                  if (totalTrade >= maxTotalTrade) {
-                    mainLogger.info(
-                      `🚧 จำนวนการทำงานครบจำนวนที่กำหนด ${totalTrade}/${maxTotalTrade}`
-                    );
-                    if (unsubscribe) {
-                      unsubscribe();
-                    }
-                    mainLogger.info("✅ จบการทำงาน...");
-                    process.exit(0);
-                  }
-
-                  logWaitingForSignal(
-                    currentCount,
-                    maxConcurrentTrade,
-                    totalTrade,
-                    maxTotalTrade
-                  );
-                },
-              });
-            } else {
+            // Unsubscribe when we reach capacity
+            if (currentCount >= maxConcurrentTrade) {
               mainLogger.info(
-                `🚧 มีการซื้อขายอยู่มากกว่าจำนวนที่กำหนด ${currentCount}/${maxConcurrentTrade}`
+                `🚧 ถึงจำนวนการทำงานสูงสุด ${currentCount}/${maxConcurrentTrade} - หยุดรับสัญญาณใหม่`
               );
+              if (unsubscribe) {
+                unsubscribe();
+                isSubscribed = false;
+              }
             }
+
+            Bun.spawn(["bun", "src/workers/TradeWorker.ts"], {
+              env: {
+                ...process.env,
+                SIGNAL_DIRECTION: signalInfo.direction,
+                INSTRUMENT: signalInfo.instrument,
+                BUY_AMOUNT: String(buyAmount),
+                LOG_FOLDER_PATH: logFolderPath, // Pass log folder path to worker
+              },
+              stdio: ["inherit", "inherit", "inherit"],
+              onExit: (_subprocess, code, signal) => {
+                handleTradeCompletion(signalInfo, code, signal);
+              },
+            });
           }
-        });
-      },
+        }
+      });
+    };
+
+    // Initial subscription
+    isSubscribed = true;
+    const tenSecondsAgo = new Date(Date.now() - 10 * 1000);
+    unsubscribe = firestoreRepo.subscribeToCollection(
+      signals[minute as keyof typeof signals],
+      handleSignalSnapshot,
       {
+        where: { field: "created", operator: ">=", value: tenSecondsAgo },
         orderBy: { field: "created", direction: "desc" },
         limit: 1,
       }
@@ -226,7 +280,7 @@ function logWaitingForSignal(
 📊 สถานะการทำงาน:
    • การทำงานปัจจุบัน: ${currentCount}/${maxConcurrentTrade}
    • จำนวนการทำงานทั้งหมด: ${totalTrade}/${maxTotalTrade}
-   • พร้อมรับสัญญาณใหม่
+   • รอรับสัญญาณใหม่
 =====================================================================\n`
   );
 }

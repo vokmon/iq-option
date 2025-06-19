@@ -34,6 +34,7 @@ for (const envVar of requiredEnvVars) {
 async function startTrading() {
   const tradingController = new TradeController();
   await tradingController.start();
+  // await new Promise((resolve) => setTimeout(resolve, 10000));
   process.exit(0);
 }
 

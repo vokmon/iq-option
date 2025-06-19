@@ -29,6 +29,7 @@ export class FirestoreRepo {
     collectionPath: string,
     callback: (snapshot: QuerySnapshot) => void,
     options: {
+      where?: { field: string; operator: string; value: any };
       orderBy?: { field: string; direction: "asc" | "desc" };
       limit?: number;
       onError?: (error: Error) => void;
@@ -42,6 +43,15 @@ export class FirestoreRepo {
     const collectionRef: CollectionReference =
       this.db.collection(collectionPath);
     let query: Query = collectionRef;
+
+    // Apply where clause if specified
+    if (options.where) {
+      query = query.where(
+        options.where.field,
+        options.where.operator as any,
+        options.where.value
+      );
+    }
 
     // Apply ordering if specified
     if (options.orderBy) {
