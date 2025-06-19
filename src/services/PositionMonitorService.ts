@@ -11,7 +11,7 @@ import { PositionMonitorLogger } from "./helpers/logging/PositionMonitorLogger";
 import type { PositionMiddleware } from "./middlewares/positions/PositionMiddleware";
 
 export class PositionMonitorService {
-  private intervalTimeInSeconds = 30;
+  private intervalTimeInSeconds = 40;
   private readonly GlobalEnvConfig = getGlobalEnvConfig();
   private interval: NodeJS.Timeout | null = null;
   private currentClientSdk: ClientSdk | null = null;

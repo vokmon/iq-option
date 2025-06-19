@@ -97,9 +97,7 @@ async function start() {
 
       // Resubscribe if we're below capacity and not already subscribed
       if (currentCount < maxConcurrentTrade && !isSubscribed) {
-        mainLogger.info(
-          `🔄 พร้อมรับสัญญาณใหม่ - เริ่มการเชื่อมต่อ Firestore อีกครั้ง`
-        );
+        mainLogger.info(`🔄 พร้อมรับสัญญาณใหม่ - เริ่มการเชื่อมต่ออีกครั้ง`);
         // Re-establish subscription
         isSubscribed = true;
         const secondsAgo = new Date(Date.now() - MAX_SIGNAL_AGE_SECONDS * 1000);
