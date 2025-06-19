@@ -1,7 +1,7 @@
 import type { BinaryOptionsDirection } from "@quadcode-tech/client-sdk-js";
 
 export interface TechnicalIndicators {
-  supportResistance: {
+  supportResistance?: {
     sma: number;
     upperBand: number;
     lowerBand: number;
@@ -20,6 +20,9 @@ export interface TechnicalIndicators {
     sellCon2: boolean;
     sellCon21: boolean;
     sellCon3: boolean;
+    string: string;
+  };
+  ai?: {
     string: string;
   };
 }

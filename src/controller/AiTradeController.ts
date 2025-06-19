@@ -1,24 +1,21 @@
+import { createWorkerLogger } from "../utils/AppLogger";
+import { TradingControllerLog } from "./helper/TradingControllerLog";
 import { getGlobalEnvConfig } from "../models/environment/GlobalEnvConfig";
 import { getTradeWorkerEnvConfig } from "../models/environment/TradeWorkerEnvConfig";
-import { createWorkerLogger } from "../utils/AppLogger";
-import {
-  initializeClient,
-  getActiveByInstrumentId,
-  getBalance,
-  getActiveByInstrumentName,
-} from "../utils/ClientUtils";
-import type {
-  BinaryOptionsActive,
-  ClientSdk,
-} from "@quadcode-tech/client-sdk-js";
-import { CandleAnalysisService } from "../services/CandleAnalysisService";
 import { TradingState } from "../models/TradingState";
+import { PositionMiddlewares } from "../services/middlewares/positions/impl/PositionMiddlewares";
+import type { ClientSdk } from "@quadcode-tech/client-sdk-js";
+import {
+  getActiveByInstrumentId,
+  getActiveByInstrumentName,
+  getBalance,
+  initializeClient,
+} from "../utils/ClientUtils";
 import { OrderService } from "../services/OrderService";
 import { PositionMonitorService } from "../services/PositionMonitorService";
-import { PositionMiddlewares } from "../services/middlewares/positions/impl/PositionMiddlewares";
-import { TradingControllerLog } from "./helper/TradingControllerLog";
+import { AiCandleAnalysisService } from "../services/AiCandleAnalysisService";
 
-export class AutoTradingByInstrumentController {
+export class AiTradeController {
   private readonly globalConfig = getGlobalEnvConfig();
   private readonly tradeConfig = getTradeWorkerEnvConfig();
   private readonly logger = createWorkerLogger({
@@ -66,7 +63,7 @@ export class AutoTradingByInstrumentController {
 
       while (true) {
         try {
-          const candleAnalysisService = new CandleAnalysisService(
+          const candleAnalysisService = new AiCandleAnalysisService(
             clientSdk,
             active,
             this.tradingState

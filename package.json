@@ -8,6 +8,7 @@
     "start": "bun index.ts",
     "start:trade": "bun --env-file=./config/env src/index_trade.ts",
     "start:signal-trade": "bun --env-file=./config/env src/index_signal_trade.ts",
+    "start:ai-trade": "bun --env-file=./config/env src/index_ai_trade.ts",
     "start:list": "bun --env-file=./config/env src/index_list.ts"
   },
   "devDependencies": {
@@ -17,8 +18,11 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@langchain/google-genai": "^0.2.12",
     "@quadcode-tech/client-sdk-js": "^1.3.7",
     "firebase-admin": "^13.4.0",
+    "langchain": "^0.3.28",
     "winston": "^3.17.0"
   }
 }

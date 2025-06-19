@@ -7,15 +7,15 @@ export class SupportResistanceIndicator implements Indicator {
   private readonly analysisConfig = getAnalysisEnvConfig();
 
   private readonly period =
-    this.analysisConfig.analysis.ANALYSIS_PERIOD_MINUTES;
+    this.analysisConfig.analysis.supportResistance.ANALYSIS_PERIOD_MINUTES;
   private readonly stdDevMultiplier =
-    this.analysisConfig.analysis.STD_DEV_MULTIPLIER;
+    this.analysisConfig.analysis.supportResistance.STD_DEV_MULTIPLIER;
   private readonly stdDevMultiplier1 =
-    this.analysisConfig.analysis.STD_DEV_MULTIPLIER_1;
+    this.analysisConfig.analysis.supportResistance.STD_DEV_MULTIPLIER_1;
   private readonly rsiBuyThreshold =
-    this.analysisConfig.analysis.RSI_BUY_THRESHOLD; // RSI threshold for buy signals
+    this.analysisConfig.analysis.supportResistance.RSI_BUY_THRESHOLD; // RSI threshold for buy signals
   private readonly rsiSellThreshold =
-    this.analysisConfig.analysis.RSI_SELL_THRESHOLD; // RSI threshold for sell signals
+    this.analysisConfig.analysis.supportResistance.RSI_SELL_THRESHOLD; // RSI threshold for sell signals
   private smallTimeframeCandles: Candle[] = [];
   private bigTimeframeCandles: Candle[] = [];
 

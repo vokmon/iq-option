@@ -5,11 +5,17 @@ export interface AnalysisEnvConfig {
   SMALL_TIME_FRAME_CANDLE_INTERVAL_MINUTES: number;
   BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES: number;
   analysis: {
-    ANALYSIS_PERIOD_MINUTES: number;
-    STD_DEV_MULTIPLIER: number;
-    STD_DEV_MULTIPLIER_1: number;
-    RSI_BUY_THRESHOLD: number;
-    RSI_SELL_THRESHOLD: number;
+    supportResistance: {
+      ANALYSIS_PERIOD_MINUTES: number;
+      STD_DEV_MULTIPLIER: number;
+      STD_DEV_MULTIPLIER_1: number;
+      RSI_BUY_THRESHOLD: number;
+      RSI_SELL_THRESHOLD: number;
+    };
+    ai: {
+      GOOGLE_API_KEY: string;
+      GOOGLE_AI_MODEL: string;
+    };
   };
 }
 
@@ -25,12 +31,18 @@ export function getAnalysisEnvConfig(): AnalysisEnvConfig {
     BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES:
       Number(process.env.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES) || 60,
     analysis: {
-      ANALYSIS_PERIOD_MINUTES:
-        Number(process.env.ANALYSIS_PERIOD_MINUTES) || 14,
-      STD_DEV_MULTIPLIER: Number(process.env.STD_DEV_MULTIPLIER) || 2,
-      STD_DEV_MULTIPLIER_1: Number(process.env.STD_DEV_MULTIPLIER_1) || 1.75,
-      RSI_BUY_THRESHOLD: Number(process.env.RSI_BUY_THRESHOLD) || 40,
-      RSI_SELL_THRESHOLD: Number(process.env.RSI_SELL_THRESHOLD) || 60,
+      supportResistance: {
+        ANALYSIS_PERIOD_MINUTES:
+          Number(process.env.ANALYSIS_PERIOD_MINUTES) || 14,
+        STD_DEV_MULTIPLIER: Number(process.env.STD_DEV_MULTIPLIER) || 2,
+        STD_DEV_MULTIPLIER_1: Number(process.env.STD_DEV_MULTIPLIER_1) || 1.75,
+        RSI_BUY_THRESHOLD: Number(process.env.RSI_BUY_THRESHOLD) || 40,
+        RSI_SELL_THRESHOLD: Number(process.env.RSI_SELL_THRESHOLD) || 60,
+      },
+      ai: {
+        GOOGLE_API_KEY: process.env.GOOGLE_API_KEY || "",
+        GOOGLE_AI_MODEL: process.env.GOOGLE_AI_MODEL || "",
+      },
     },
   };
 }

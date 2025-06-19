@@ -1,4 +1,7 @@
-import type { Position } from "@quadcode-tech/client-sdk-js";
+import type {
+  BinaryOptionsActive,
+  Position,
+} from "@quadcode-tech/client-sdk-js";
 import type { TradingState } from "../../models/TradingState";
 import { getTradeWorkerEnvConfig } from "../../models/environment/TradeWorkerEnvConfig";
 import { createWorkerLogger } from "../../utils/AppLogger";
@@ -83,5 +86,19 @@ ${positions
 =====================================================================\n`;
 
     this.logger.info(logMessage);
+  }
+
+  public logTradingConfiguration(active: BinaryOptionsActive): void {
+    const configInfo = `
+▶️ ========================= เริ่มต้นการเทรด ${active.ticker} ========================= ▶️
+🟢 เชื่อมต่อสำเร็จ!
+⚙️ พารามิเตอร์การเทรด:
+   • รหัสสินทรัพย์:              ${active.id}
+   • ชื่อสินทรัพย์:               ${active.ticker}
+   • จำนวนเงินที่ซื้อ:            ${this.tradingConfig.BUY_AMOUNT}
+   • จำนวนรอบสูงสุด (รอบ):     ${this.tradingConfig.MAX_TRADE_CYCLES}
+-------------------------------------------------------------------------\n\n
+`;
+    this.logger.info(configInfo);
   }
 }
