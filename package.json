@@ -8,6 +8,7 @@
     "start": "bun index.ts",
     "start:trade": "bun --env-file=./config/env src/index_trade.ts",
     "start:signal-trade": "bun --env-file=./config/env src/index_signal_trade.ts",
+    "start:signal-ai-trade": "bun --env-file=./config/env src/index_signal_ai_trade.ts",
     "start:ai-trade": "bun --env-file=./config/env src/index_ai_trade.ts",
     "start:list": "bun --env-file=./config/env src/index_list.ts"
   },

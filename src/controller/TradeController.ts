@@ -1,9 +1,6 @@
 import type { ClientSdk } from "@quadcode-tech/client-sdk-js";
 import { getGlobalEnvConfig } from "../models/environment/GlobalEnvConfig";
-import {
-  getTradeWorkerEnvConfig,
-  type TradeWorkerEnvConfig,
-} from "../models/environment/TradeWorkerEnvConfig";
+import { getTradeWorkerEnvConfig } from "../models/environment/TradeWorkerEnvConfig";
 import { TradingState } from "../models/TradingState";
 import { PositionMiddlewares } from "../services/middlewares/positions/impl/PositionMiddlewares";
 import { OrderService } from "../services/OrderService";
@@ -15,7 +12,7 @@ import {
 } from "../utils/ClientUtils";
 import { TradingControllerLog } from "./helper/TradingControllerLog";
 import { PositionMonitorService } from "../services/PositionMonitorService";
-import { BinaryOptionsDirection } from "@quadcode-tech/client-sdk-js";
+import { convertSignalDirectionToBinaryOptionsDirection } from "../utils/SignalUtils";
 
 export class TradeController {
   private readonly globalConfig = getGlobalEnvConfig();
@@ -54,7 +51,7 @@ export class TradeController {
 
       const order = await orderService.placeOrder({
         instrumentId: active.id,
-        direction: this.convertSignalDirectionToBinaryOptionsDirection(
+        direction: convertSignalDirectionToBinaryOptionsDirection(
           this.tradeConfig.SIGNAL_DIRECTION
         ),
         amount: this.tradeConfig.BUY_AMOUNT,
@@ -77,21 +74,6 @@ export class TradeController {
         clientSdk?.shutdown();
       }
       throw error;
-    }
-  }
-
-  private convertSignalDirectionToBinaryOptionsDirection(
-    signalDirection: TradeWorkerEnvConfig["SIGNAL_DIRECTION"]
-  ): BinaryOptionsDirection {
-    const normalizedDirection = signalDirection.toLowerCase();
-
-    switch (normalizedDirection) {
-      case "buy":
-        return BinaryOptionsDirection.Call;
-      case "sell":
-        return BinaryOptionsDirection.Put;
-      default:
-        throw new Error(`Invalid signal direction: ${signalDirection}`);
     }
   }
 }

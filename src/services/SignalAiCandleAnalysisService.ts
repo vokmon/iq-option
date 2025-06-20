@@ -1,5 +1,6 @@
 import type {
   BinaryOptionsActive,
+  BinaryOptionsDirection,
   ClientSdk,
 } from "@quadcode-tech/client-sdk-js";
 import { TradingState } from "../models/TradingState";
@@ -12,9 +13,10 @@ import { AiAnalysisService } from "./AiAnalysisService";
 interface CandleData {
   instrumentId: number;
   date: Date;
+  signalDirection: BinaryOptionsDirection;
 }
 
-export class AiCandleAnalysisService {
+export class SignalAiCandleAnalysisService {
   private readonly analysisConfig = getAnalysisEnvConfig();
   private readonly aiAnalysisService = new AiAnalysisService();
   private readonly analysisLogger: AnalysisLogger;
