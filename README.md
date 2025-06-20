@@ -215,3 +215,5 @@ The bot provides detailed logging of:
 ## License
 
 MIT License
+
+https://www.npmjs.com/package/@quadcode-tech/client-sdk-js
