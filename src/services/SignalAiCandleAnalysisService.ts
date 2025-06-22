@@ -31,7 +31,7 @@ export class SignalAiCandleAnalysisService {
   }
 
   async analyzeCandles(candleData: CandleData): Promise<AnalysisResult> {
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
       while (true) {
         const candles = await this.getCandleData(candleData);
         this.analysisLogger.logCandleData({
@@ -78,6 +78,10 @@ export class SignalAiCandleAnalysisService {
         if (analysis.shouldTrade) {
           resolve(analysis);
           break;
+        }
+
+        if (instrument.purchaseEndTime().getTime() < new Date().getTime()) {
+          reject("Purchase end time has passed");
         }
 
         this.analysisLogger.logWaitingForNextAnalysis();
