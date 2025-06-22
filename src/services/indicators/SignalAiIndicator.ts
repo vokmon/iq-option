@@ -46,7 +46,7 @@ export class SignalAiIndicator {
       bigTimeframeCandlesInterval:
         this.analysisConfig.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES,
 
-      nextTradeMinutes: getMinutesUntil(instrument.purchaseEndTime()),
+      nextTradeMinutes: getMinutesUntil(instrument.expiredAt),
       signalDirection: signalDirection,
     });
 
