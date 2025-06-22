@@ -55,6 +55,12 @@ export class SignalAiCandleAnalysisService {
 
         if (targetTime.getTime() > new Date().getTime()) {
           const untilTargetTime = getMinutesUntil(targetTime);
+          const untilTargetTimeInMinutes = getMinutesUntil(targetTime);
+          this.analysisLogger.logWaitingForTradePurchaseEndTime(
+            purchaseEndTime,
+            untilTargetTimeInMinutes,
+            targetTime
+          );
           await new Promise((resolve) =>
             setTimeout(resolve, untilTargetTime * 60 * 1000)
           );

@@ -128,9 +128,6 @@ ${indicatorStrings.join("\n   • ")}
     targetTime: Date
   ): void {
     const currentTradeNumber = this.tradingState.getCurrentTradeNumber();
-    const waitTime =
-      this.analysisConfig.WAIT_UNITIL_TRADE_PURCHASE_END_TIME_MINUTES;
-
     const logMessage = `
 ⏳ ======================== Trade #${currentTradeNumber} Waiting for Trade Purchase End Time ========================
 🕒 Purchase End Time: ${purchaseEndTime.toLocaleString()} | Wait until ${
