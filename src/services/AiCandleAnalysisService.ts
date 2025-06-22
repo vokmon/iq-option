@@ -8,6 +8,7 @@ import type { AnalysisResult } from "../models/Analysis";
 import { AnalysisLogger } from "./helpers/logging/AnalysisLogger";
 import { getAnalysisEnvConfig } from "../models/environment/AnalysisEnvConfig";
 import { AiAnalysisService } from "./AiAnalysisService";
+import { getMinutesUntil } from "../utils/Dateutils";
 
 interface CandleData {
   instrumentId: number;
@@ -41,6 +42,21 @@ export class AiCandleAnalysisService {
           binaryOptions,
           candleData.instrumentId
         );
+
+        // Wait until near the purchase end time
+        const purchaseEndTime = instrument.purchaseEndTime();
+        const waitUntilMinutes =
+          this.analysisConfig.WAIT_UNITIL_TRADE_PURCHASE_END_TIME_MINUTES;
+        const targetTime = new Date(
+          purchaseEndTime.getTime() - waitUntilMinutes * 60 * 1000
+        );
+
+        if (targetTime.getTime() > new Date().getTime()) {
+          const untilTargetTime = getMinutesUntil(targetTime);
+          await new Promise((resolve) =>
+            setTimeout(resolve, untilTargetTime * 60 * 1000)
+          );
+        }
 
         const analysis = await this.aiAnalysisService.analyzeCandles({
           smallTimeframeCandles: candles.smallTimeframeCandles,

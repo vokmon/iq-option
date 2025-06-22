@@ -5,6 +5,7 @@ export interface AnalysisEnvConfig {
   SMALL_TIME_FRAME_CANDLE_INTERVAL_MINUTES: number;
   BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES: number;
   BIG_TIME_FRAME_CANDLE_LOOKBACK_PERIODS: number;
+  WAIT_UNITIL_TRADE_PURCHASE_END_TIME_MINUTES: number;
 
   analysis: {
     supportResistance: {
@@ -40,6 +41,9 @@ export function getAnalysisEnvConfig(): AnalysisEnvConfig {
     ),
     BIG_TIME_FRAME_CANDLE_LOOKBACK_PERIODS: Number(
       process.env.BIG_TIME_FRAME_CANDLE_LOOKBACK_PERIODS || "6"
+    ),
+    WAIT_UNITIL_TRADE_PURCHASE_END_TIME_MINUTES: Number(
+      process.env.WAIT_UNITIL_TRADE_PURCHASE_END_TIME_MINUTES || "4"
     ),
 
     analysis: {
