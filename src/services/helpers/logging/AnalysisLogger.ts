@@ -133,7 +133,7 @@ ${indicatorStrings.join("\n   • ")}
 🕒 Purchase End Time: ${purchaseEndTime.toLocaleString()} | Wait until ${
       this.analysisConfig.WAIT_UNITIL_TRADE_PURCHASE_END_TIME_MINUTES
     } minutes before purchase end time
-🕒 Wait for ${untilTargetTimeInMinutes} minutes | Time: ${targetTime.toLocaleString()}
+🕒 Wait for ${untilTargetTimeInMinutes} minutes | Start at: ${targetTime.toLocaleString()}
 ====================================================================================================================\n`;
 
     this.logger.info(logMessage);
