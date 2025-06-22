@@ -123,6 +123,7 @@ ${indicatorStrings.join("\n   • ")}
   }
 
   logWaitingForTradePurchaseEndTime(
+    purchaseEndTime: Date,
     untilTargetTimeInMinutes: number,
     targetTime: Date
   ): void {
@@ -131,9 +132,9 @@ ${indicatorStrings.join("\n   • ")}
       this.analysisConfig.WAIT_UNITIL_TRADE_PURCHASE_END_TIME_MINUTES;
 
     const logMessage = `
-    ⏳ ======================== Trade #${currentTradeNumber} Waiting for Trade Purchase End Time ========================
-    🕒 Time: Wait for ${waitTime} minutes | Time: ${targetTime.toLocaleString()}
-    =====================================================================\n`;
+⏳ ======================== Trade #${currentTradeNumber} Waiting for Trade Purchase End Time ========================
+🕒 Purchase End Time: ${purchaseEndTime.toLocaleString()} | Wait for ${untilTargetTimeInMinutes} minutes | Time: ${targetTime.toLocaleString()}
+=====================================================================\n`;
 
     this.logger.info(logMessage);
   }

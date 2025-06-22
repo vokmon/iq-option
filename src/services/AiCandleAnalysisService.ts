@@ -54,6 +54,7 @@ export class AiCandleAnalysisService {
         if (targetTime.getTime() > new Date().getTime()) {
           const untilTargetTimeInMinutes = getMinutesUntil(targetTime);
           this.analysisLogger.logWaitingForTradePurchaseEndTime(
+            purchaseEndTime,
             untilTargetTimeInMinutes,
             targetTime
           );
