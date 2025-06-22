@@ -121,4 +121,20 @@ ${indicatorStrings.join("\n   • ")}
 
     this.logger.info(logMessage);
   }
+
+  logWaitingForTradePurchaseEndTime(
+    untilTargetTimeInMinutes: number,
+    targetTime: Date
+  ): void {
+    const currentTradeNumber = this.tradingState.getCurrentTradeNumber();
+    const waitTime =
+      this.analysisConfig.WAIT_UNITIL_TRADE_PURCHASE_END_TIME_MINUTES;
+
+    const logMessage = `
+    ⏳ ======================== Trade #${currentTradeNumber} Waiting for Trade Purchase End Time ========================
+    🕒 Time: Wait for ${waitTime} minutes | Time: ${targetTime.toLocaleString()}
+    =====================================================================\n`;
+
+    this.logger.info(logMessage);
+  }
 }

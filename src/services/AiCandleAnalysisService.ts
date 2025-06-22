@@ -52,9 +52,13 @@ export class AiCandleAnalysisService {
         );
 
         if (targetTime.getTime() > new Date().getTime()) {
-          const untilTargetTime = getMinutesUntil(targetTime);
+          const untilTargetTimeInMinutes = getMinutesUntil(targetTime);
+          this.analysisLogger.logWaitingForTradePurchaseEndTime(
+            untilTargetTimeInMinutes,
+            targetTime
+          );
           await new Promise((resolve) =>
-            setTimeout(resolve, untilTargetTime * 60 * 1000)
+            setTimeout(resolve, untilTargetTimeInMinutes * 60 * 1000)
           );
         }
 
