@@ -37,7 +37,6 @@ export class AnalysisLogger {
     active: BinaryOptionsActive;
   }): void {
     const {
-      LOOKBACK_PERIOD,
       MIN_CONFIDENCE_THRESHOLD,
       ANALYSIS_WAIT_TIME_BETWEEN_TRADES_SECONDS,
     } = this.analysisConfig;
@@ -47,15 +46,15 @@ export class AnalysisLogger {
    • Instrument: ${candles.active.ticker} | ${candles.active.id}
 
 ${this.formatTimeframeDetails(
-  "Small Timeframe (15m)",
+  `Small Timeframe (${this.analysisConfig.SMALL_TIME_FRAME_CANDLE_INTERVAL_MINUTES}m)`,
   candles.smallTimeframeCandles,
-  LOOKBACK_PERIOD
+  this.analysisConfig.SMALL_TIME_FRAME_CANDLE_LOOKBACK_PERIODS
 )}
 
 ${this.formatTimeframeDetails(
-  "Big Timeframe (60m)",
+  `Big Timeframe (${this.analysisConfig.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES}m)`,
   candles.bigTimeframeCandles,
-  LOOKBACK_PERIOD
+  this.analysisConfig.BIG_TIME_FRAME_CANDLE_LOOKBACK_PERIODS
 )}
 
 📊 Analysis Configuration:
@@ -101,7 +100,7 @@ ${this.formatTimeframeDetails(
    }
 
 📊 Technical Indicators:
-   • ${indicatorStrings.join("\n   • ")}
+${indicatorStrings.join("\n   • ")}
 =====================================================================
 `;
 

@@ -5,6 +5,8 @@ import {
   Balance,
   BinaryOptionsActive,
   Candle,
+  BinaryOptions,
+  BinaryOptionsActiveInstrument,
 } from "@quadcode-tech/client-sdk-js";
 import type { GlobalEnvConfig } from "../models/environment/GlobalEnvConfig";
 
@@ -111,3 +113,36 @@ export async function getCandles({
   );
   return candlesData;
 }
+
+export const findInstrument = async (
+  binaryOptions: BinaryOptions,
+  instrumentId: number
+): Promise<BinaryOptionsActiveInstrument> => {
+  const actives = binaryOptions
+    .getActives()
+    .filter((active: BinaryOptionsActive) => active.canBeBoughtAt(new Date()));
+
+  const active = actives.find(
+    (active: BinaryOptionsActive) => active.id === instrumentId
+  );
+  if (!active) {
+    throw new Error(`ไม่พบ active instrument ID: ${instrumentId}`);
+  }
+
+  const instruments = await active.instruments();
+  if (!instruments) {
+    throw new Error("ไม่พบ instruments");
+  }
+
+  const availableInstruments = instruments.getAvailableForBuyAt(new Date());
+  if (!availableInstruments || availableInstruments.length === 0) {
+    throw new Error("ไม่พบ available instruments");
+  }
+
+  const instrument = availableInstruments[0];
+  if (!instrument) {
+    throw new Error("ไม่พบ instrument");
+  }
+
+  return instrument;
+};

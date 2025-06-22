@@ -1,5 +1,8 @@
-import type { Candle } from "@quadcode-tech/client-sdk-js";
-import type { Indicator, IndicatorResult } from "./Indicator";
+import type {
+  BinaryOptionsActiveInstrument,
+  Candle,
+} from "@quadcode-tech/client-sdk-js";
+import type { IndicatorResult } from "./Indicator";
 import { getChatGoogleGenerativeAI } from "../../utils/AiModel";
 import {
   BaseOutputParser,
@@ -8,11 +11,16 @@ import {
 } from "@langchain/core/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
+import { getAnalysisEnvConfig } from "../../models/environment/AnalysisEnvConfig";
+import { getMinutesUntil } from "../../utils/Dateutils";
 
 export class AiIndicator {
+  private analysisConfig = getAnalysisEnvConfig();
+
   public async calculate(
     smallTimeframeCandles: Candle[],
-    bigTimeframeCandles: Candle[]
+    bigTimeframeCandles: Candle[],
+    instrument: BinaryOptionsActiveInstrument
   ): Promise<IndicatorResult> {
     const chain = await this.getChain(
       this.prompt,
@@ -21,15 +29,22 @@ export class AiIndicator {
 
     const result = await chain.invoke({
       smallTimeframeCandles: JSON.stringify(smallTimeframeCandles).replace(
-        /"/g,
+        /'/g,
         ""
       ),
       smallTimeframeCandlesLookback: smallTimeframeCandles.length,
+      smallTimeframeCandlesInterval:
+        this.analysisConfig.SMALL_TIME_FRAME_CANDLE_INTERVAL_MINUTES,
+
       bigTimeframeCandles: JSON.stringify(bigTimeframeCandles).replace(
-        /"/g,
+        /'/g,
         ""
       ),
       bigTimeframeCandlesLookback: bigTimeframeCandles.length,
+      bigTimeframeCandlesInterval:
+        this.analysisConfig.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES,
+
+      nextTradeMinutes: getMinutesUntil(instrument.purchaseEndTime()),
     });
 
     return result as IndicatorResult;
@@ -50,56 +65,90 @@ export class AiIndicator {
   };
 
   private prompt = `
-You are a professional binary options analyst. Analyze the following candlestick data to determine if a trade should be placed now.
+You are an expert Quantitative Analyst specializing in high-frequency binary options trading.
+Analyze multi-timeframe candlestick data to determine whether a trade should be placed now.
+Your primary goal is to predict the price direction over the next {nextTradeMinutes} minutes and provide a clear, actionable trading signal.
 
-Inputs:
+Inputs
+smallTimeframeCandles: Candlestick data on a short timeframe ({smallTimeframeCandlesInterval} minutes), with {smallTimeframeCandlesLookback} periods — for precision entry signal.
+bigTimeframeCandles: Candlestick data on a higher timeframe ({bigTimeframeCandlesInterval} minutes), with {bigTimeframeCandlesLookback} periods — for analyzing overall and trend of market context.
 
-smallTimeframeCandles: Candlesticks from a short timeframe (15-minute) with lookback {smallTimeframeCandlesLookback} period.
+Main Idea:
+1. Analyze both timeframes together to form a clear view of:
+ - Market trend direction (short-term and long-term)
+ - Momentum shifts
+ - Recent breakout or rejection behavior
 
-bigTimeframeCandles: Candlesticks from a higher timeframe (1-hour)  with lookback {bigTimeframeCandlesLookback} period.
+2. Note any reversal or continuation patterns, such as:
+ - Engulfing candles
+ - Doji at key levels
+ - Pin bars, hammers, shooting stars
+ - Inside bars, breakouts, or false breakouts
+ - Other patterns that you think are important
 
-Your task:
+3. Incorporate other models or techniques where appropriate, such as:
+ - Moving averages, trendlines, or zones
+ - RSI/MACD divergence
+ - Volume shifts or volatility changes
+ - Any technical indicator that strengthens the signal
+ - Other patterns that you think are important
 
-- Analyze price action patterns across both timeframes.
+Your Task:
+Execute a step-by-step analysis to determine if a trade should be placed.
 
-- Focus your analysis on what is likely to happen in the next 15 minutes
+1. Strategic Landscape Analysis (Big Timeframe: {bigTimeframeCandlesInterval} min):
+Your goal here is to establish the overall market context and bias.
 
-- Consider 
-  - Trend direction and momentum across both timeframes
-  - Key candlestick formations (e.g., engulfing, pin bar, doji)
-  - Reversal or continuation signals
-  - Support/resistance areas and recent breakout behavior
-    and other technical indicators you see fit.
-  - Determine if the data supports entering a call (up) or put (down) trade — or if its best to wait (neutral).
+ - Trend and Structure: Is the market in a clear uptrend, downtrend, or a ranging/consolidating phase? Infer this by analyzing the sequence of swing highs and lows as if you were plotting key moving averages.
+ - Key Price Zones: Identify the most significant horizontal support and resistance levels. These are the major 'lines in the sand.'
 
-Your goal is to determine whether to enter a trade now, and if so:
-Call (up): If price is likely to go up within the next 15 minutes
-Put (down): If price is likely to go down within the next 15 minutes
-Neutral (hold): If no clear signal or conflicting evidence
+ - Macro Chart Patterns: Scan for large-scale patterns that define the current structure. Consider models such as:
+   - Head and Shoulders (or Inverse)
+   - Double/Triple Tops and Bottoms
+   - Triangles (Ascending, Descending, Symmetrical)
+   - Channels and Wedges
+   - Other patterns that you think are important
+ - Volume Profile Context: Note where the majority of trading volume has occurred. This helps confirm the strength of support/resistance zones.
 
-Output format (JSON):
+2. Tactical Entry Analysis (Small Timeframe: {smallTimeframeCandlesInterval} min):
+Your goal here is to find a high-precision, tactical entry point that aligns with the big-picture analysis.
 
-json
+- Price Action & Momentum: How is the price reacting as it approaches the key zones identified in Step 1? Look for signs of confirmation or rejection. Infer momentum conditions as if you were looking at an oscillator like RSI or MACD (e.g., Price is re-testing a major resistance level from the big timeframe, and the small timeframe shows bearish divergence with weakening upward momentum').
+- High-Probability Candlestick Formations: Identify specific, actionable candlestick signals. Your toolkit must include:
+  - Reversal Patterns: Engulfing (Bullish/Bearish), Pin Bars (Hammers/Shooting Stars), Dojis at key levels, Tweezer Tops/Bottoms, Morning/Evening Star formations.
+  - Continuation Patterns: Inside Bars, Flags, Pennants suggesting a pause before resuming the trend.
+- Volume Spread Analysis (VSA): This is critical for precision. Analyze the relationship between a candle's volume and its price spread (range). Note signals like:
+  - Strength: 'Stopping Volume' (ultra-high volume halting a downtrend), 'Effort to Rise'.
+  - Weakness: 'No Demand Bar' (a narrow-spread up-bar on low volume), 'Effort to Fall'.
+- Other patterns that you think are important
 
-  signal: up | down | neutral,  // Direction for the binary option trade - The output should directly help you decide whether to enter a call (up) trade, put (down) trade, or hold (neutral)
-  confidence: number,        // Value from 0 to 1 indicating how strong the signal is
-  string: ...              // A clear and brief explanation - output in Thai language - output format in bullet points
+3. Signal Synthesis & Confluence:
+- Synthesize the findings. A high-quality trade signal requires strong confluence. For example: a VSA signal of 'Stopping Volume' on the small timeframe that occurs precisely at a major support level identified on the big timeframe.
+- If the small timeframe action contradicts the big timeframe bias, the signal is weak. Acknowledge this conflict and advise caution (likely neutral).
 
-Be direct and actionable. Your output should help a trader decide whether to place a binary option trade right now.
-The decision should be optimized for 15-minute expiration.
+Your Goal and Final Decision:
+Based on your synthesis, determine the optimal trading decision for a {nextTradeMinutes}-minute expiration.
+'call' → If the price is likely to go up
+'put' → If the price is likely to go down
+'neutral' → If conditions are unclear, risky, or contradicting
 
---------------------------------
+Your output must be a single, clean JSON object with the following structure.
+  signal: call | put | neutral,
+  confidence: 0.0 to 1.0,
+  string: Thai-language explanation in bullet points
 
-smallTimeframeCandles with 15 minutes interval:
+Be direct and actionable
 
+Provide a concise explanation (in Thai) for the decision
+
+Make sure the result helps a trader decide immediately
+
+Candle Data
+smallTimeframeCandles ({smallTimeframeCandlesInterval} min):
 {smallTimeframeCandles}
 
---------------------------------
-
-bigTimeframeCandles with 1 hour interval:
-
+bigTimeframeCandles ({bigTimeframeCandlesInterval} min):
 {bigTimeframeCandles}
---------------------------------
 
 `;
 }

@@ -3,7 +3,7 @@ import type {
   ClientSdk,
 } from "@quadcode-tech/client-sdk-js";
 import { TradingState } from "../models/TradingState";
-import { getCandles } from "../utils/ClientUtils";
+import { findInstrument, getCandles } from "../utils/ClientUtils";
 import type { AnalysisResult } from "../models/Analysis";
 import { AnalysisLogger } from "./helpers/logging/AnalysisLogger";
 import { getAnalysisEnvConfig } from "../models/environment/AnalysisEnvConfig";
@@ -36,9 +36,16 @@ export class AiCandleAnalysisService {
           active: this.active,
         });
 
+        const binaryOptions = await this.clientSdk.binaryOptions();
+        const instrument = await findInstrument(
+          binaryOptions,
+          candleData.instrumentId
+        );
+
         const analysis = await this.aiAnalysisService.analyzeCandles({
           smallTimeframeCandles: candles.smallTimeframeCandles,
           bigTimeframeCandles: candles.bigTimeframeCandles,
+          instrument,
         });
 
         this.analysisLogger.logAnalysisResult(analysis, this.active);
@@ -66,12 +73,14 @@ export class AiCandleAnalysisService {
       this.getTimeframeCandles(
         instrumentId,
         date,
-        this.analysisConfig.SMALL_TIME_FRAME_CANDLE_INTERVAL_MINUTES
+        this.analysisConfig.SMALL_TIME_FRAME_CANDLE_INTERVAL_MINUTES,
+        this.analysisConfig.SMALL_TIME_FRAME_CANDLE_LOOKBACK_PERIODS
       ),
       this.getTimeframeCandles(
         instrumentId,
         date,
-        this.analysisConfig.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES
+        this.analysisConfig.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES,
+        this.analysisConfig.BIG_TIME_FRAME_CANDLE_LOOKBACK_PERIODS
       ),
     ]);
 
@@ -84,10 +93,10 @@ export class AiCandleAnalysisService {
   private async getTimeframeCandles(
     instrumentId: number,
     date: Date,
-    intervalMinutes: number
+    intervalMinutes: number,
+    lookbackPeroid: number
   ) {
-    const analysisMinutes =
-      intervalMinutes * this.analysisConfig.LOOKBACK_PERIOD;
+    const analysisMinutes = intervalMinutes * lookbackPeroid;
 
     return await getCandles({
       clientSdk: this.clientSdk,

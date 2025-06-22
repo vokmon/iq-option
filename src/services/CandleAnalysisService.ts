@@ -66,12 +66,14 @@ export class CandleAnalysisService {
       this.getTimeframeCandles(
         instrumentId,
         date,
-        this.analysisConfig.SMALL_TIME_FRAME_CANDLE_INTERVAL_MINUTES
+        this.analysisConfig.SMALL_TIME_FRAME_CANDLE_INTERVAL_MINUTES,
+        this.analysisConfig.SMALL_TIME_FRAME_CANDLE_LOOKBACK_PERIODS
       ),
       this.getTimeframeCandles(
         instrumentId,
         date,
-        this.analysisConfig.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES
+        this.analysisConfig.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES,
+        this.analysisConfig.BIG_TIME_FRAME_CANDLE_LOOKBACK_PERIODS
       ),
     ]);
 
@@ -84,10 +86,10 @@ export class CandleAnalysisService {
   private async getTimeframeCandles(
     instrumentId: number,
     date: Date,
-    intervalMinutes: number
+    intervalMinutes: number,
+    lookbackPeriod: number
   ) {
-    const analysisMinutes =
-      intervalMinutes * this.analysisConfig.LOOKBACK_PERIOD;
+    const analysisMinutes = intervalMinutes * lookbackPeriod;
 
     return await getCandles({
       clientSdk: this.clientSdk,

@@ -1,4 +1,7 @@
-import type { Candle } from "@quadcode-tech/client-sdk-js";
+import type {
+  BinaryOptionsActiveInstrument,
+  Candle,
+} from "@quadcode-tech/client-sdk-js";
 import { BinaryOptionsDirection } from "@quadcode-tech/client-sdk-js";
 import type { AnalysisResult } from "../models/Analysis";
 import { SignalAiIndicator } from "./indicators/SignalAiIndicator";
@@ -12,21 +15,24 @@ export class SignalAiAnalysisService {
     smallTimeframeCandles,
     bigTimeframeCandles,
     signalDirection,
+    instrument,
   }: {
     smallTimeframeCandles: Candle[]; // 20 fifteen-minute candles
     bigTimeframeCandles: Candle[]; // 20 sixty-minute candles
     signalDirection: BinaryOptionsDirection;
+    instrument: BinaryOptionsActiveInstrument;
   }): Promise<AnalysisResult> {
     const indicatorResult = await this.aiIndicator.calculate(
       smallTimeframeCandles,
       bigTimeframeCandles,
-      signalDirection
+      signalDirection,
+      instrument
     );
     return {
       direction:
-        indicatorResult.signal === "up"
+        indicatorResult.signal === "call"
           ? BinaryOptionsDirection.Call
-          : indicatorResult.signal === "down"
+          : indicatorResult.signal === "put"
           ? BinaryOptionsDirection.Put
           : null,
       confidence: indicatorResult.confidence,
