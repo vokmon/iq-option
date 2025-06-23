@@ -11,9 +11,9 @@ import { PositionMonitorLogger } from "./helpers/logging/PositionMonitorLogger";
 import type { PositionMiddleware } from "./middlewares/positions/PositionMiddleware";
 
 export class PositionMonitorService {
-  private intervalTimeInSeconds = 1000 * 60 * 20;
+  private intervalTimeInSeconds = 40;
   private readonly GlobalEnvConfig = getGlobalEnvConfig();
-  // private interval: NodeJS.Timeout | null = null;
+  private interval: NodeJS.Timeout | null = null;
   private currentClientSdk: ClientSdk | null = null;
   private readonly positionMonitorLogger: PositionMonitorLogger;
   private readonly middlewares: PositionMiddleware[] = [];
@@ -27,67 +27,77 @@ export class PositionMonitorService {
   }
 
   async monitorPosition(order: BinaryOptionsOption): Promise<Position | null> {
-    return new Promise(async (resolve, reject) => {
-      // this.interval = setInterval(async () => {
-      try {
-        // Cleanup previous client if it exists
-        if (this.currentClientSdk) {
-          this.currentClientSdk.shutdown();
-          this.currentClientSdk = null;
-        }
+    return new Promise((resolve, reject) => {
+      // Execute immediately first
+      const executeMonitoring = async () => {
+        try {
+          // Cleanup previous client if it exists
+          if (this.currentClientSdk) {
+            this.currentClientSdk.shutdown();
+            this.currentClientSdk = null;
+          }
 
-        // Initialize new client
-        this.currentClientSdk = await initializeClient(this.GlobalEnvConfig);
-        this.positionMonitorLogger.logConnectionSuccess(order);
+          // Initialize new client
+          this.currentClientSdk = await initializeClient(this.GlobalEnvConfig);
+          this.positionMonitorLogger.logConnectionSuccess(order);
 
-        const positions = await this.currentClientSdk.positions();
-        const positionOrder = positions
-          .getAllPositions()
-          .filter(
-            (position) =>
-              position.instrumentType === InstrumentType.BinaryOption &&
-              position.externalId === order.id
-          );
+          const positions = await this.currentClientSdk.positions();
+          const positionOrder = positions
+            .getAllPositions()
+            .filter(
+              (position) =>
+                position.instrumentType === InstrumentType.BinaryOption &&
+                position.externalId === order.id
+            );
 
-        if (!positionOrder || positionOrder.length === 0) {
-          resolve(null);
-        }
-        positions.subscribeOnUpdatePosition(async (position) => {
-          if (position.externalId === order.id) {
-            // print here can be too much
-            // this.positionMonitorLogger.logPositionUpdate(position);
+          if (!positionOrder || positionOrder.length === 0) {
+            resolve(null);
+          }
+          positions.subscribeOnUpdatePosition(async (position) => {
+            if (position.externalId === order.id) {
+              // print here can be too much
+              // this.positionMonitorLogger.logPositionUpdate(position);
 
-            // Run all middlewares
-            for (const middleware of this.middlewares) {
-              try {
-                await middleware(position, resolve, reject);
-              } catch (error) {
-                console.error("Middleware error:", error);
+              // Run all middlewares
+              for (const middleware of this.middlewares) {
+                try {
+                  await middleware(position, resolve, reject);
+                } catch (error) {
+                  console.error("Middleware error:", error);
+                }
+              }
+
+              // If position is closed, cleanup and resolve
+              if (position.status?.toLowerCase().includes("close")) {
+                this.positionMonitorLogger.logPositionUpdate(position);
+                this.cleanup();
+                resolve(position);
               }
             }
+          });
+        } catch (error) {
+          console.error("Error in position monitoring:", error);
+          this.cleanup(); // Cleanup on error
+          // reject(error);
+        }
+      };
 
-            // If position is closed, cleanup and resolve
-            if (position.status?.toLowerCase().includes("close")) {
-              this.positionMonitorLogger.logPositionUpdate(position);
-              this.cleanup();
-              resolve(position);
-            }
-          }
-        });
-      } catch (error) {
-        console.error("Error in position monitoring:", error);
-        this.cleanup(); // Cleanup on error
-        reject(error);
-      }
-      // }, this.intervalTimeInSeconds * 1000);
+      // Execute immediately
+      executeMonitoring();
+
+      // Then set up the interval for subsequent executions
+      this.interval = setInterval(
+        executeMonitoring,
+        this.intervalTimeInSeconds * 1000
+      );
     });
   }
 
   // Add cleanup method
   cleanup() {
-    // if (this.interval) {
-    //   clearInterval(this.interval);
-    // }
+    if (this.interval) {
+      clearInterval(this.interval);
+    }
     if (this.currentClientSdk) {
       this.currentClientSdk.shutdown();
       this.currentClientSdk = null;
