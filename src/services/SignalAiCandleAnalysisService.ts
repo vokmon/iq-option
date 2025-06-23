@@ -75,13 +75,13 @@ export class SignalAiCandleAnalysisService {
 
         this.analysisLogger.logAnalysisResult(analysis, this.active);
 
+        if (instrument.purchaseEndTime().getTime() < new Date().getTime()) {
+          reject("Purchase end time has passed");
+        }
+
         if (analysis.shouldTrade) {
           resolve(analysis);
           break;
-        }
-
-        if (instrument.purchaseEndTime().getTime() < new Date().getTime()) {
-          reject("Purchase end time has passed");
         }
 
         this.analysisLogger.logWaitingForNextAnalysis();
