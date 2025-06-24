@@ -3,11 +3,7 @@ import type {
   ClientSdk,
 } from "@quadcode-tech/client-sdk-js";
 import { TradingState } from "../models/TradingState";
-import {
-  findInstrument,
-  getCandles,
-  getCurrentQuote,
-} from "../utils/ClientUtils";
+import { findInstrument, getCandles } from "../utils/ClientUtils";
 import type { AnalysisResult } from "../models/Analysis";
 import { AnalysisLogger } from "./helpers/logging/AnalysisLogger";
 import { getAnalysisEnvConfig } from "../models/environment/AnalysisEnvConfig";
@@ -61,29 +57,17 @@ export class AiCandleAnalysisService {
           );
         }
 
-        const candlesPromise = this.getCandleData(candleData);
-
-        const currentQuotePromise = getCurrentQuote(
-          this.clientSdk,
-          candleData.instrumentId
-        );
-
-        const [candles, currentQuote] = await Promise.all([
-          candlesPromise,
-          currentQuotePromise,
-        ]);
+        const candles = await this.getCandleData(candleData);
 
         this.analysisLogger.logCandleData({
           ...candles,
           active: this.active,
-          currentQuote,
         });
 
         const analysis = await this.aiAnalysisService.analyzeCandles({
           smallTimeframeCandles: candles.smallTimeframeCandles,
           bigTimeframeCandles: candles.bigTimeframeCandles,
           instrument,
-          currentQuote,
         });
 
         if (instrument.purchaseEndTime().getTime() < new Date().getTime()) {

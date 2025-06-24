@@ -17,20 +17,17 @@ export class SignalAiAnalysisService {
     bigTimeframeCandles,
     signalDirection,
     instrument,
-    currentQuote,
   }: {
     smallTimeframeCandles: Candle[]; // 20 fifteen-minute candles
     bigTimeframeCandles: Candle[]; // 20 sixty-minute candles
     signalDirection: BinaryOptionsDirection;
     instrument: BinaryOptionsActiveInstrument;
-    currentQuote: CurrentQuote;
   }): Promise<AnalysisResult> {
     const indicatorResult = await this.aiIndicator.calculate(
       smallTimeframeCandles,
       bigTimeframeCandles,
       signalDirection,
-      instrument,
-      currentQuote
+      instrument
     );
     return {
       direction:

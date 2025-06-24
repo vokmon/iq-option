@@ -21,8 +21,7 @@ export class AiIndicator {
   public async calculate(
     smallTimeframeCandles: Candle[],
     bigTimeframeCandles: Candle[],
-    instrument: BinaryOptionsActiveInstrument,
-    currentQuote: CurrentQuote
+    instrument: BinaryOptionsActiveInstrument
   ): Promise<IndicatorResult> {
     const chain = await this.getChain(
       this.prompt,
@@ -47,7 +46,8 @@ export class AiIndicator {
         this.analysisConfig.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES,
 
       nextTradeMinutes: getMinutesUntil(instrument.expiredAt),
-      currentPrice: currentQuote.value,
+      currentPrice:
+        smallTimeframeCandles[smallTimeframeCandles.length - 1]?.close,
     });
 
     return result as IndicatorResult;

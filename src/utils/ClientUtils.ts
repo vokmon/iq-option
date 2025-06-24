@@ -147,20 +147,3 @@ export const findInstrument = async (
 
   return instrument;
 };
-
-export const getCurrentQuote = async (
-  clientSdk: ClientSdk,
-  instrumentId: number
-): Promise<CurrentQuote> => {
-  return new Promise(async (resolve) => {
-    const quotes = await clientSdk.quotes();
-    const currentQuote = await quotes.getCurrentQuoteForActive(instrumentId);
-
-    const getCurrentQuote = (quote: CurrentQuote) => {
-      const currentQuote = quote;
-      currentQuote.unsubscribeOnUpdate(getCurrentQuote);
-      resolve(currentQuote);
-    };
-    currentQuote.subscribeOnUpdate(getCurrentQuote);
-  });
-};

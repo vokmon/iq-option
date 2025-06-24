@@ -23,8 +23,7 @@ export class SignalAiIndicator {
     smallTimeframeCandles: Candle[],
     bigTimeframeCandles: Candle[],
     signalDirection: BinaryOptionsDirection,
-    instrument: BinaryOptionsActiveInstrument,
-    currentQuote: CurrentQuote
+    instrument: BinaryOptionsActiveInstrument
   ): Promise<IndicatorResult> {
     const chain = await this.getChain(
       this.prompt,
@@ -50,7 +49,8 @@ export class SignalAiIndicator {
 
       nextTradeMinutes: getMinutesUntil(instrument.expiredAt),
       signalDirection: signalDirection,
-      currentPrice: currentQuote.value,
+      currentPrice:
+        smallTimeframeCandles[smallTimeframeCandles.length - 1]?.close,
     });
 
     return result as IndicatorResult;

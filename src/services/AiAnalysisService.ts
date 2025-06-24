@@ -16,18 +16,15 @@ export class AiAnalysisService {
     smallTimeframeCandles,
     bigTimeframeCandles,
     instrument,
-    currentQuote,
   }: {
     smallTimeframeCandles: Candle[]; // 20 fifteen-minute candles
     bigTimeframeCandles: Candle[]; // 20 sixty-minute candles
     instrument: BinaryOptionsActiveInstrument;
-    currentQuote: CurrentQuote;
   }): Promise<AnalysisResult> {
     const indicatorResult = await this.aiIndicator.calculate(
       smallTimeframeCandles,
       bigTimeframeCandles,
-      instrument,
-      currentQuote
+      instrument
     );
     return {
       direction:

@@ -39,7 +39,6 @@ export class AnalysisLogger {
     smallTimeframeCandles: Candle[];
     bigTimeframeCandles: Candle[];
     active: BinaryOptionsActive;
-    currentQuote: CurrentQuote;
   }): void {
     const {
       MIN_CONFIDENCE_THRESHOLD,
@@ -63,8 +62,10 @@ ${this.formatTimeframeDetails(
 )}
 
 📊 Current Quote:
-   • Value: ${candles.currentQuote.value}
-   • Time: ${candles.currentQuote.time?.toLocaleString()}
+   • Value: ${
+     candles.smallTimeframeCandles[candles.smallTimeframeCandles.length - 1]
+       ?.close
+   }
 
 📊 Analysis Configuration:
    • Minimum Confidence: ${MIN_CONFIDENCE_THRESHOLD}

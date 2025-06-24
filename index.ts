@@ -41,51 +41,51 @@ tickers.forEach((ticker) => {
   console.log(`${ticker.ticker} - ${ticker.id}`);
 });
 
-// const candles = await sdk.candles();
+const candles = await sdk.candles();
 
-// const toDate = new Date();
-// const fromDate = new Date(toDate.getTime());
+const toDate = new Date();
+const fromDate = new Date(toDate.getTime());
 
-// const lookbackPeriod = 20;
-// const intervalMinutes = 15;
+const lookbackPeriod = 1;
+const intervalMinutes = 15;
 
-// const lookback = lookbackPeriod * intervalMinutes;
+const lookback = lookbackPeriod * intervalMinutes;
 
-// fromDate.setHours(fromDate.getHours() - lookback / 60);
+fromDate.setHours(fromDate.getHours() - lookback / 60);
 
-// console.log(fromDate);
-// const candlesData = await candles.getCandles(1858, intervalMinutes * 60, {
-//   from: Math.floor(
-//     Date.UTC(
-//       fromDate.getUTCFullYear(),
-//       fromDate.getUTCMonth(),
-//       fromDate.getUTCDate(),
-//       fromDate.getUTCHours(),
-//       fromDate.getUTCMinutes(),
-//       fromDate.getUTCSeconds()
-//     ) / 1000
-//   ),
-//   to: Math.floor(
-//     Date.UTC(
-//       toDate.getUTCFullYear(),
-//       toDate.getUTCMonth(),
-//       toDate.getUTCDate(),
-//       toDate.getUTCHours(),
-//       toDate.getUTCMinutes(),
-//       toDate.getUTCSeconds()
-//     ) / 1000
-//   ),
-// });
-// console.log(candlesData);
+console.log(fromDate);
+const candlesData = await candles.getCandles(1858, intervalMinutes * 60, {
+  from: Math.floor(
+    Date.UTC(
+      fromDate.getUTCFullYear(),
+      fromDate.getUTCMonth(),
+      fromDate.getUTCDate(),
+      fromDate.getUTCHours(),
+      fromDate.getUTCMinutes(),
+      fromDate.getUTCSeconds()
+    ) / 1000
+  ),
+  to: Math.floor(
+    Date.UTC(
+      toDate.getUTCFullYear(),
+      toDate.getUTCMonth(),
+      toDate.getUTCDate(),
+      toDate.getUTCHours(),
+      toDate.getUTCMinutes(),
+      toDate.getUTCSeconds()
+    ) / 1000
+  ),
+});
+console.log(candlesData);
 
-const quotes = await sdk.quotes();
+// const quotes = await sdk.quotes();
 
-const print = (quote: CurrentQuote) => {
-  console.log(quote);
-  // currentQuote.unsubscribeOnUpdate(print);
-};
-const currentQuote = await quotes.getCurrentQuoteForActive(81);
-currentQuote.subscribeOnUpdate(print);
+// const print = (quote: CurrentQuote) => {
+//   console.log(quote);
+//   // currentQuote.unsubscribeOnUpdate(print);
+// };
+// const currentQuote = await quotes.getCurrentQuoteForActive(81);
+// currentQuote.subscribeOnUpdate(print);
 
 // Buy
 // const firstActive = actives.find((active) => active.ticker === "EURUSD");
