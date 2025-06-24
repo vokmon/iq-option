@@ -11,9 +11,9 @@ import { PositionMonitorLogger } from "./helpers/logging/PositionMonitorLogger";
 import type { PositionMiddleware } from "./middlewares/positions/PositionMiddleware";
 
 export class PositionMonitorService {
-  private intervalTimeInSeconds = 40;
+  // private intervalTimeInSeconds = 40;
   private readonly GlobalEnvConfig = getGlobalEnvConfig();
-  private interval: NodeJS.Timeout | null = null;
+  // private interval: NodeJS.Timeout | null = null;
   private currentClientSdk: ClientSdk | null = null;
   private readonly positionMonitorLogger: PositionMonitorLogger;
   private readonly middlewares: PositionMiddleware[] = [];
@@ -78,7 +78,7 @@ export class PositionMonitorService {
         } catch (error) {
           console.error("Error in position monitoring:", error);
           this.cleanup(); // Cleanup on error
-          // reject(error);
+          reject(error);
         }
       };
 
@@ -86,18 +86,18 @@ export class PositionMonitorService {
       executeMonitoring();
 
       // Then set up the interval for subsequent executions
-      this.interval = setInterval(
-        executeMonitoring,
-        this.intervalTimeInSeconds * 1000
-      );
+      // this.interval = setInterval(
+      //   executeMonitoring,
+      //   this.intervalTimeInSeconds * 1000
+      // );
     });
   }
 
   // Add cleanup method
   cleanup() {
-    if (this.interval) {
-      clearInterval(this.interval);
-    }
+    // if (this.interval) {
+    //   clearInterval(this.interval);
+    // }
     if (this.currentClientSdk) {
       this.currentClientSdk.shutdown();
       this.currentClientSdk = null;
