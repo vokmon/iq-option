@@ -1,7 +1,6 @@
 import type {
   BinaryOptionsActiveInstrument,
   Candle,
-  CurrentQuote,
 } from "@quadcode-tech/client-sdk-js";
 import type { IndicatorResult } from "./Indicator";
 import { getChatGoogleGenerativeAI } from "../../utils/AiModel";
@@ -14,6 +13,7 @@ import { PromptTemplate } from "@langchain/core/prompts";
 import { RunnableSequence } from "@langchain/core/runnables";
 import { getAnalysisEnvConfig } from "../../models/environment/AnalysisEnvConfig";
 import { getMinutesUntil } from "../../utils/Dateutils";
+import { transformCandles } from "../../utils/DataUtils";
 
 export class AiIndicator {
   private analysisConfig = getAnalysisEnvConfig();
@@ -29,18 +29,16 @@ export class AiIndicator {
     );
 
     const result = await chain.invoke({
-      smallTimeframeCandles: JSON.stringify(smallTimeframeCandles).replace(
-        /'/g,
-        ""
-      ),
+      smallTimeframeCandles: JSON.stringify(
+        transformCandles(smallTimeframeCandles)
+      ).replace(/'/g, ""),
       smallTimeframeCandlesLookback: smallTimeframeCandles.length,
       smallTimeframeCandlesInterval:
         this.analysisConfig.SMALL_TIME_FRAME_CANDLE_INTERVAL_MINUTES,
 
-      bigTimeframeCandles: JSON.stringify(bigTimeframeCandles).replace(
-        /'/g,
-        ""
-      ),
+      bigTimeframeCandles: JSON.stringify(
+        transformCandles(bigTimeframeCandles)
+      ).replace(/'/g, ""),
       bigTimeframeCandlesLookback: bigTimeframeCandles.length,
       bigTimeframeCandlesInterval:
         this.analysisConfig.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES,
@@ -48,6 +46,7 @@ export class AiIndicator {
       nextTradeMinutes: getMinutesUntil(instrument.expiredAt),
       currentPrice:
         smallTimeframeCandles[smallTimeframeCandles.length - 1]?.close,
+      currentTimestamp: new Date().getTime() / 1000,
     });
 
     return result as IndicatorResult;
@@ -150,12 +149,25 @@ Provide a concise explanation (in Thai) for the decision
 
 Make sure the result helps a trader decide immediately
 
+Current Timestamp in seconds
+{currentTimestamp}
+
 Current price:
 {currentPrice}
 
 --------------------------------
 
 Candle Data
+Fields: explanation
+id: id of the candle
+from: start time of the candle. timestamp in seconds
+to: end time of the candle. timestamp in seconds
+open: open price of the candle
+close: close price of the candle
+min: minimum price of the candle
+max: maximum price of the candle
+at: time of the candle in timestamp in nanoseconds
+
 smallTimeframeCandles ({smallTimeframeCandlesInterval} min):
 {smallTimeframeCandles}
 
