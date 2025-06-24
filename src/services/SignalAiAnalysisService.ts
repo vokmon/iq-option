@@ -29,7 +29,7 @@ export class SignalAiAnalysisService {
       smallTimeframeCandles,
       bigTimeframeCandles,
       signalDirection,
-      instrument
+      instrument,
       currentQuote
     );
     return {
