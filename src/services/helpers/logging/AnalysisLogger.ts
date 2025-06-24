@@ -61,8 +61,12 @@ ${this.formatTimeframeDetails(
   candles.bigTimeframeCandles,
   this.analysisConfig.BIG_TIME_FRAME_CANDLE_LOOKBACK_PERIODS
 )}
+
+📊 Current Quote:
+   • Value: ${candles.currentQuote.value}
+   • Time: ${candles.currentQuote.time?.toLocaleString()}
+
 📊 Analysis Configuration:
-   • Current Quote: ${candles.currentQuote.value}
    • Minimum Confidence: ${MIN_CONFIDENCE_THRESHOLD}
    • Wait Time Between Trades: ${ANALYSIS_WAIT_TIME_BETWEEN_TRADES_SECONDS} seconds
 =====================================================================\n`);
