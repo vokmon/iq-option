@@ -1,6 +1,7 @@
 import type {
   BinaryOptionsActiveInstrument,
   Candle,
+  CurrentQuote,
 } from "@quadcode-tech/client-sdk-js";
 import type { IndicatorResult } from "./Indicator";
 import { getChatGoogleGenerativeAI } from "../../utils/AiModel";
@@ -20,7 +21,8 @@ export class AiIndicator {
   public async calculate(
     smallTimeframeCandles: Candle[],
     bigTimeframeCandles: Candle[],
-    instrument: BinaryOptionsActiveInstrument
+    instrument: BinaryOptionsActiveInstrument,
+    currentQuote: CurrentQuote
   ): Promise<IndicatorResult> {
     const chain = await this.getChain(
       this.prompt,
@@ -45,6 +47,7 @@ export class AiIndicator {
         this.analysisConfig.BIG_TIME_FRAME_CANDLE_INTERVAL_MINUTES,
 
       nextTradeMinutes: getMinutesUntil(instrument.expiredAt),
+      currentPrice: currentQuote.value,
     });
 
     return result as IndicatorResult;
@@ -72,6 +75,7 @@ Your primary goal is to predict the price direction over the next {nextTradeMinu
 Inputs
 smallTimeframeCandles: Candlestick data on a short timeframe ({smallTimeframeCandlesInterval} minutes), with {smallTimeframeCandlesLookback} periods — for precision entry signal.
 bigTimeframeCandles: Candlestick data on a higher timeframe ({bigTimeframeCandlesInterval} minutes), with {bigTimeframeCandlesLookback} periods — for analyzing overall and trend of market context.
+currentPrice: The current, live market price of the asset. This is your potential trade entry point.
 
 Main Idea:
 1. Analyze both timeframes together to form a clear view of:
@@ -111,7 +115,7 @@ Your goal here is to establish the overall market context and bias.
  - Volume Profile Context: Note where the majority of trading volume has occurred. This helps confirm the strength of support/resistance zones.
 
 2. Tactical Entry Analysis (Small Timeframe: {smallTimeframeCandlesInterval} min):
-Your goal here is to find a high-precision, tactical entry point that aligns with the big-picture analysis.
+Your goal here is to find a high-precision, tactical entry point confirming it with the currentPrice that aligns with the big-picture analysis.
 
 - Price Action & Momentum: How is the price reacting as it approaches the key zones identified in Step 1? Look for signs of confirmation or rejection. Infer momentum conditions as if you were looking at an oscillator like RSI or MACD (e.g., Price is re-testing a major resistance level from the big timeframe, and the small timeframe shows bearish divergence with weakening upward momentum').
 - High-Probability Candlestick Formations: Identify specific, actionable candlestick signals. Your toolkit must include:
@@ -120,16 +124,19 @@ Your goal here is to find a high-precision, tactical entry point that aligns wit
 - Volume Spread Analysis (VSA): This is critical for precision. Analyze the relationship between a candle's volume and its price spread (range). Note signals like:
   - Strength: 'Stopping Volume' (ultra-high volume halting a downtrend), 'Effort to Rise'.
   - Weakness: 'No Demand Bar' (a narrow-spread up-bar on low volume), 'Effort to Fall'.
+- Current Price Evaluation: This is a critical confirmation step. Evaluate the current price of {currentPrice} in real-time.
+  - Where is it relative to the high/low of the last closed candle?
+  - Is it actively breaking a key immediate level, or is it showing signs of rejection from it right now? Your decision must be based on this live context.
 - Other patterns that you think are important
 
 3. Signal Synthesis & Confluence:
-- Synthesize the findings. A high-quality trade signal requires strong confluence. For example: a VSA signal of 'Stopping Volume' on the small timeframe that occurs precisely at a major support level identified on the big timeframe.
-- If the small timeframe action contradicts the big timeframe bias, the signal is weak. Acknowledge this conflict and advise caution (likely neutral).
+  - Synthesize the findings. A high-quality signal requires strong confluence (e.g., big timeframe is in an uptrend, small timeframe shows a bullish pin bar at support, and the current price of {currentPrice} is now moving above that pin bar's high).
+  - If the small timeframe action contradicts the big timeframe bias, or if the current price of {currentPrice} is failing to confirm a pattern, advise caution (likely neutral)
 
 Your Goal and Final Decision:
-Based on your synthesis, determine the optimal trading decision for a {nextTradeMinutes}-minute expiration.
-'call' → If the price is likely to go up
-'put' → If the price is likely to go down
+Based on your synthesis, and evaluating if the current price of {currentPrice} is an optimal entry point, determine the optimal trading decision for a {nextTradeMinutes}-minute expiration.
+'call' → If the price is likely to be higher than {currentPrice} after {nextTradeMinutes} minutes.
+'put' →  If the price is likely to be lower than {currentPrice} after {nextTradeMinutes} minutes.
 'neutral' → If conditions are unclear, risky, or contradicting
 
 Your output must be a single, clean JSON object with the following structure.
@@ -142,6 +149,11 @@ Be direct and actionable
 Provide a concise explanation (in Thai) for the decision
 
 Make sure the result helps a trader decide immediately
+
+Current price:
+{currentPrice}
+
+--------------------------------
 
 Candle Data
 smallTimeframeCandles ({smallTimeframeCandlesInterval} min):

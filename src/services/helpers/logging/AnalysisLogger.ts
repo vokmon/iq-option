@@ -3,7 +3,11 @@ import { createWorkerLogger } from "../../../utils/AppLogger";
 import { getTradeWorkerEnvConfig } from "../../../models/environment/TradeWorkerEnvConfig";
 import { getAnalysisEnvConfig } from "../../../models/environment/AnalysisEnvConfig";
 import type { TradingState } from "../../../models/TradingState";
-import type { BinaryOptionsActive, Candle } from "@quadcode-tech/client-sdk-js";
+import type {
+  BinaryOptionsActive,
+  Candle,
+  CurrentQuote,
+} from "@quadcode-tech/client-sdk-js";
 
 export class AnalysisLogger {
   private readonly tradeConfig = getTradeWorkerEnvConfig();
@@ -35,6 +39,7 @@ export class AnalysisLogger {
     smallTimeframeCandles: Candle[];
     bigTimeframeCandles: Candle[];
     active: BinaryOptionsActive;
+    currentQuote: CurrentQuote;
   }): void {
     const {
       MIN_CONFIDENCE_THRESHOLD,
@@ -56,8 +61,8 @@ ${this.formatTimeframeDetails(
   candles.bigTimeframeCandles,
   this.analysisConfig.BIG_TIME_FRAME_CANDLE_LOOKBACK_PERIODS
 )}
-
 📊 Analysis Configuration:
+   • Current Quote: ${candles.currentQuote.value}
    • Minimum Confidence: ${MIN_CONFIDENCE_THRESHOLD}
    • Wait Time Between Trades: ${ANALYSIS_WAIT_TIME_BETWEEN_TRADES_SECONDS} seconds
 =====================================================================\n`);

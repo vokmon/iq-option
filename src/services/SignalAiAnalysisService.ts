@@ -1,6 +1,7 @@
 import type {
   BinaryOptionsActiveInstrument,
   Candle,
+  CurrentQuote,
 } from "@quadcode-tech/client-sdk-js";
 import { BinaryOptionsDirection } from "@quadcode-tech/client-sdk-js";
 import type { AnalysisResult } from "../models/Analysis";
@@ -16,17 +17,20 @@ export class SignalAiAnalysisService {
     bigTimeframeCandles,
     signalDirection,
     instrument,
+    currentQuote,
   }: {
     smallTimeframeCandles: Candle[]; // 20 fifteen-minute candles
     bigTimeframeCandles: Candle[]; // 20 sixty-minute candles
     signalDirection: BinaryOptionsDirection;
     instrument: BinaryOptionsActiveInstrument;
+    currentQuote: CurrentQuote;
   }): Promise<AnalysisResult> {
     const indicatorResult = await this.aiIndicator.calculate(
       smallTimeframeCandles,
       bigTimeframeCandles,
       signalDirection,
       instrument
+      currentQuote
     );
     return {
       direction:

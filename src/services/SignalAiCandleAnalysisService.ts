@@ -4,7 +4,11 @@ import type {
   ClientSdk,
 } from "@quadcode-tech/client-sdk-js";
 import { TradingState } from "../models/TradingState";
-import { findInstrument, getCandles } from "../utils/ClientUtils";
+import {
+  findInstrument,
+  getCandles,
+  getCurrentQuote,
+} from "../utils/ClientUtils";
 import type { AnalysisResult } from "../models/Analysis";
 import { AnalysisLogger } from "./helpers/logging/AnalysisLogger";
 import { getAnalysisEnvConfig } from "../models/environment/AnalysisEnvConfig";
@@ -33,12 +37,6 @@ export class SignalAiCandleAnalysisService {
   async analyzeCandles(candleData: CandleData): Promise<AnalysisResult> {
     return new Promise(async (resolve, reject) => {
       while (true) {
-        const candles = await this.getCandleData(candleData);
-        this.analysisLogger.logCandleData({
-          ...candles,
-          active: this.active,
-        });
-
         const binaryOptions = await this.clientSdk.binaryOptions();
         const instrument = await findInstrument(
           binaryOptions,
@@ -66,11 +64,30 @@ export class SignalAiCandleAnalysisService {
           );
         }
 
+        const candlesPromise = this.getCandleData(candleData);
+
+        const currentQuotePromise = getCurrentQuote(
+          this.clientSdk,
+          candleData.instrumentId
+        );
+
+        const [candles, currentQuote] = await Promise.all([
+          candlesPromise,
+          currentQuotePromise,
+        ]);
+
+        this.analysisLogger.logCandleData({
+          ...candles,
+          active: this.active,
+          currentQuote,
+        });
+
         const analysis = await this.aiAnalysisService.analyzeCandles({
           smallTimeframeCandles: candles.smallTimeframeCandles,
           bigTimeframeCandles: candles.bigTimeframeCandles,
           signalDirection: candleData.signalDirection,
           instrument,
+          currentQuote,
         });
 
         this.analysisLogger.logAnalysisResult(analysis, this.active);

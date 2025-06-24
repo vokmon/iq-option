@@ -2,6 +2,7 @@ import type {
   BinaryOptionsActiveInstrument,
   BinaryOptionsDirection,
   Candle,
+  CurrentQuote,
 } from "@quadcode-tech/client-sdk-js";
 import type { IndicatorResult } from "./Indicator";
 import { getChatGoogleGenerativeAI } from "../../utils/AiModel";
@@ -22,7 +23,8 @@ export class SignalAiIndicator {
     smallTimeframeCandles: Candle[],
     bigTimeframeCandles: Candle[],
     signalDirection: BinaryOptionsDirection,
-    instrument: BinaryOptionsActiveInstrument
+    instrument: BinaryOptionsActiveInstrument,
+    currentQuote: CurrentQuote
   ): Promise<IndicatorResult> {
     const chain = await this.getChain(
       this.prompt,
@@ -48,6 +50,7 @@ export class SignalAiIndicator {
 
       nextTradeMinutes: getMinutesUntil(instrument.expiredAt),
       signalDirection: signalDirection,
+      currentPrice: currentQuote.value,
     });
 
     return result as IndicatorResult;
@@ -76,6 +79,7 @@ Inputs
 smallTimeframeCandles: Candlestick data on a short timeframe ({smallTimeframeCandlesInterval} minutes), with {smallTimeframeCandlesLookback} periods — for precision entry signal.
 bigTimeframeCandles: Candlestick data on a higher timeframe ({bigTimeframeCandlesInterval} minutes), with {bigTimeframeCandlesLookback} periods — for analyzing overall and trend of market context.
 signalDirection: An external signal suggesting a trade direction ('up' for a Call, 'down' for a Put). Your task is to find evidence to support or reject this signal.
+currentPrice: The current, live market price of the asset. This serves as the final confirmation trigger for a trade entry.
 
 Main Idea:
 1. Analyze both timeframes together to form a clear view of:
@@ -103,7 +107,7 @@ Main Idea:
  - Other patterns that you think are important
 
 Your Task:
-Execute a step-by-step analysis to validate or invalidate the signalDirection and decide if a trade should be placed.
+Execute a step-by-step analysis to validate or invalidate the signalDirection and decide if a trade should be placed based on the current price of {currentPrice}.
 
 1. Strategic Landscape Analysis (Big Timeframe: {bigTimeframeCandlesInterval} min):
 Your goal here is to establish the overall market context and bias.
@@ -130,21 +134,25 @@ Infer momentum conditions as if you were looking at an oscillator like RSI or MA
 - Volume Spread Analysis (VSA): This is critical for precision. Analyze the relationship between a candle's volume and its price spread (range) that confirm or deny the signalDirection. Note signals like:
   - Strength: 'Stopping Volume' (ultra-high volume halting a downtrend), 'Effort to Rise'.
   - Weakness: 'No Demand Bar' (a narrow-spread up-bar on low volume), 'Effort to Fall'.
+- Current Price Evaluation: This is your final trigger. For the given {signalDirection}, is the current price of {currentPrice} actively confirming the setup? For example, if {signalDirection} is 'up' and you see a bullish pattern, is the current price of {currentPrice} showing strength and moving higher? A trade is only valid if the live price confirms the pattern.
 - Other patterns that you think are important
 
 3. Signal Synthesis & Confluence:
 This is the most critical step. Compare your technical findings from Steps 1 & 2 against the provided signalDirection.
 - Synthesize the findings. A high-quality trade signal requires strong confluence. For example: a VSA signal of 'Stopping Volume' on the small timeframe that occurs precisely at a major support level identified on the big timeframe.
 - If the small timeframe action contradicts the big timeframe bias, the signal is weak. Acknowledge this conflict and advise caution (likely neutral).
-- Validation (Confirm Signal): If your analysis of both timeframes shows strong confluence that aligns with the signalDirection, you validate the signal. (e.g., signalDirection is 'up', and your analysis finds a clear uptrend with a bullish pin bar at support).
-- Invalidation (Reject Signal): If your analysis strongly contradicts the signalDirection (e.g., signalDirection is 'up', but you find major bearish reversal patterns at a key resistance level), you must reject the signal and output neutral.
+- Validation (Confirm Signal): Occurs only if:
+  - The Big Timeframe context (Step 1) supports the {signalDirection}.
+  - The Small Timeframe analysis (Step 2) shows clear, confirming patterns (candlesticks, VSA).
+  - The current price of {currentPrice} is actively confirming the entry setup right now. If all three align, validate the signal (call or put).
+- Invalidation (Reject Signal): If your analysis strongly contradicts the signalDirection (e.g., signalDirection is 'up', but you find major bearish reversal patterns at a key resistance level), you must reject the signal and output neutral. If the current price of {currentPrice} is moving strongly against it. Reject the signal and output neutral
 - Insufficient Evidence (Hold): If your analysis is ambiguous, ranging, or simply lacks clear patterns to confidently support the signalDirection, you must also output neutral. Do not force a trade if confirming evidence is absent.
 
 Your Goal and Final Decision:
-Based on your validation process, determine the final trading decision for a {nextTradeMinutes}-minute expiration.
+Based on your validation process, determine the final trading decision for a {nextTradeMinutes}-minute expiration from the current price of {currentPrice}.
 
-'call' → If the price is likely to go up
-'put' → If the price is likely to go down
+'call' → If the price is likely to be higher than {currentPrice} after {nextTradeMinutes} minutes.
+'put' →  If the price is likely to be lower than {currentPrice} after {nextTradeMinutes} minutes.
 'neutral' → If conditions are unclear, risky, or contradicting
 
 Your output must be a single, clean JSON object with the following structure.
@@ -157,6 +165,11 @@ Be direct and actionable
 Provide a concise explanation (in Thai) for the decision
 
 Make sure the result helps a trader decide immediately
+
+Current price:
+{currentPrice}
+
+--------------------------------
 
 Candle Data
 smallTimeframeCandles ({smallTimeframeCandlesInterval} min):
