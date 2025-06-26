@@ -148,4 +148,8 @@ ${indicatorStrings.join("\n   • ")}
 
     this.logger.info(logMessage);
   }
+
+  error(message: string, error: any): void {
+    this.logger.error(message, { error });
+  }
 }
