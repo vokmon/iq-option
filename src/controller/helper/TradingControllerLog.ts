@@ -38,7 +38,7 @@ export class TradingControllerLog {
 📈 ผลลัพธ์:
    • PNL: ${pnl}
    • Net PNL: ${position.pnlNet}
-   • ผลการซื้อ: ${pnl > 0 ? "✅ WIN" : "❌ LOSS"}
+   • ผลการซื้อ: ${pnl > 0 ? "✅ WIN" : pnl === 0 ? "🟡 DRAW" : "❌ LOSS"}
    • กำไร/ขาดทุน: ${pnl > 0 ? "+" : ""}${pnl}
 
 🔄 Trading Progress:
@@ -60,7 +60,7 @@ export class TradingControllerLog {
 ${positions
   .map((position, index) => {
     const pnl = position.pnl || 0;
-    const result = pnl > 0 ? "✅ WIN" : "❌ LOSS";
+    const result = pnl > 0 ? "✅ WIN" : pnl === 0 ? "🟡 DRAW" : "❌ LOSS";
     return `
    Round ${index + 1}:
       • Result: ${result}
