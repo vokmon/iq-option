@@ -96,6 +96,8 @@ Main Idea:
  - Any technical indicator that strengthens the signal
  - Other patterns that you think are important
 
+ 4. Critically, every potential signal must be evaluated for its **confluence** and **risk context**. A signal is only as good as the point at which it is proven wrong.
+
 Your Task:
 Execute a step-by-step analysis to determine if a trade should be placed.
 
@@ -126,11 +128,25 @@ Your goal here is to find a high-precision, tactical entry point confirming it w
 - Current Price Evaluation: This is a critical confirmation step. Evaluate the current price of {currentPrice} in real-time.
   - Where is it relative to the high/low of the last closed candle?
   - Is it actively breaking a key immediate level, or is it showing signs of rejection from it right now? Your decision must be based on this live context.
-- Other patterns that you think are important
+- Volatility Analysis: Assess the current market volatility. Are the Bollinger Bands expanding (suggesting a powerful move or breakout) or contracting (suggesting consolidation or a potential 'squeeze')? Is the Average True Range (ATR) increasing or decreasing? This context is critical for binary options.
+  - Other patterns that you think are important
 
 3. Signal Synthesis & Confluence:
   - Synthesize the findings. A high-quality signal requires strong confluence (e.g., big timeframe is in an uptrend, small timeframe shows a bullish pin bar at support, and the current price of {currentPrice} is now moving above that pin bar's high).
   - If the small timeframe action contradicts the big timeframe bias, or if the current price of {currentPrice} is failing to confirm a pattern, advise caution (likely neutral)
+  - Identify the Counter-Argument & Invalidation Point: What would prove this trade idea wrong? Explicitly state the price level that, if broken, would invalidate the signal.
+    - Example for a 'call' signal: "The signal is based on the support at $1.2500. The idea is invalid if the price breaks decisively below this level."
+
+Confidence Score Calculation:**
+Calculate confidence on a scale of 0.0 to 1.0 based on the number of confluence factors.
+- Start at 0.5 (Neutral).
+- +0.1 for clear Big Timeframe trend alignment.
+- +0.1 for a strong Key Price Zone (well-tested support/resistance).
+- +0.1 for a classic, unambiguous candlestick pattern on the Small Timeframe.
+- +0.1 for confirmation from Volume (VSA or high-volume reaction).
+- +0.1 for confirmation from an indicator (e.g., MACD/RSI divergence, Bollinger Band behavior).
+- -0.2 if small timeframe action directly contradicts the big timeframe bias (e.g., bearish pattern in a strong uptrend).
+
 
 Your Goal and Final Decision:
 Based on your synthesis, and evaluating if the current price of {currentPrice} is an optimal entry point, determine the optimal trading decision for a {nextTradeMinutes}-minute expiration.

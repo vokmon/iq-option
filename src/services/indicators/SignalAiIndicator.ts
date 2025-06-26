@@ -133,7 +133,8 @@ Infer momentum conditions as if you were looking at an oscillator like RSI or MA
 - Volume Spread Analysis (VSA): This is critical for precision. Analyze the relationship between a candle's volume and its price spread (range) that confirm or deny the signalDirection. Note signals like:
   - Strength: 'Stopping Volume' (ultra-high volume halting a downtrend), 'Effort to Rise'.
   - Weakness: 'No Demand Bar' (a narrow-spread up-bar on low volume), 'Effort to Fall'.
-- Current Price Evaluation: This is your final trigger. For the given {signalDirection}, is the current price of {currentPrice} actively confirming the setup? For example, if {signalDirection} is 'up' and you see a bullish pattern, is the current price of {currentPrice} showing strength and moving higher? A trade is only valid if the live price confirms the pattern.
+- Volatility Analysis: Do volatility conditions (e.g., expanding Bollinger Bands) support the potential for a follow-through move in the signalDirection of {signalDirection}?
+  - Current Price Evaluation: This is your final trigger. For the given {signalDirection}, is the current price of {currentPrice} actively confirming the setup? For example, if {signalDirection} is 'up' and you see a bullish pattern, is the current price of {currentPrice} showing strength and moving higher? A trade is only valid if the live price confirms the pattern.
 - Other patterns that you think are important
 
 3. Signal Synthesis & Confluence:
@@ -146,6 +147,19 @@ This is the most critical step. Compare your technical findings from Steps 1 & 2
   - The current price of {currentPrice} is actively confirming the entry setup right now. If all three align, validate the signal (call or put).
 - Invalidation (Reject Signal): If your analysis strongly contradicts the signalDirection (e.g., signalDirection is 'up', but you find major bearish reversal patterns at a key resistance level), you must reject the signal and output neutral. If the current price of {currentPrice} is moving strongly against it. Reject the signal and output neutral
 - Insufficient Evidence (Hold): If your analysis is ambiguous, ranging, or simply lacks clear patterns to confidently support the signalDirection, you must also output neutral. Do not force a trade if confirming evidence is absent.
+- Define the Invalidation Point: First, determine the critical price level that would objectively prove the signalDirection of {signalDirection} wrong.
+    - *Example for 'up' signal:* "The bullish idea is based on the support at $1.2500. The signal is invalid if the price breaks decisively below this level." This is your key risk level.
+
+Confidence Score Calculation:**
+Calculate confidence on a scale of 0.0 to 1.0 based on the number of confluence factors.
+- Start at 0.5 (Neutral).
+- +0.1 for clear Big Timeframe trend alignment.
+- +0.1 for a strong Key Price Zone (well-tested support/resistance).
+- +0.1 for a classic, unambiguous candlestick pattern on the Small Timeframe.
+- +0.1 for confirmation from Volume (VSA or high-volume reaction).
+- +0.1 for confirmation from an indicator (e.g., MACD/RSI divergence, Bollinger Band behavior).
+- -0.2 if small timeframe action directly contradicts the big timeframe bias (e.g., bearish pattern in a strong uptrend).
+
 
 Your Goal and Final Decision:
 Based on your validation process, determine the final trading decision for a {nextTradeMinutes}-minute expiration from the current price of {currentPrice}.
